@@ -1,0 +1,8 @@
+# Intermediate and build files
+*.intermediate
+*build
+
+# Visual Studio configuration files
+*.vs
+*.vscode
+*c_cpp_properties.json
