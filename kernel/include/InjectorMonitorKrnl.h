@@ -1,6 +1,46 @@
+/*++
+
+author:
+
+Daulet Tumbayev
+
+Module Name:
+
+InjectorMonitorKrnl.h
+
+Abstract:
+Interface between driver and user lib
+
+Environment:
+
+Kernel mode & User mode
+
+--*/
+
 #pragma once
 
+//------------------------------------------------------------------------
+//  Definitions.
+//------------------------------------------------------------------------
+
 #define IM_PORT_NAME L"\\IMPort"
+
+#define IM_AMOUNT_OF_DATA 2
+#define IM_PROCESS_NAME_INDEX 0
+#define IM_FILE_NAME_INDEX 1
+
+//------------------------------------------------------------------------
+//  Structures.
+//------------------------------------------------------------------------
+
+//
+// Data of variable length in record
+//
+typedef struct _IM_KRECORD_DATA
+{
+  ULONG Size; // zero size in case if data was not retrieved
+  PVOID Buffer;
+} IM_KRECORD_DATA, *PIM_KRECORD_DATA; 
 
 //
 //  What information we actually log.
@@ -39,14 +79,9 @@ typedef struct _IM_KRECORD
   BOOLEAN IsSucceded;
 
   //
-  // Size of the name in BYTES
+  // contains data of variable length (such as strings)
   //
-  ULONG NameSize;
-
-  //
-  // Name of the binary, I do not use UNICODE_STRING in order to save space
-  //
-  PWCHAR Name;
+  IM_KRECORD_DATA Data[IM_AMOUNT_OF_DATA];
 
 } IM_KRECORD, *PIM_KRECORD;
 

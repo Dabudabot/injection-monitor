@@ -132,7 +132,7 @@ IMPostCreate(
 
     // now we know that target process are trying to open for execution something
     // it is enouth evidence to log it. So record will be created
-    NT_IF_FAIL_LEAVE(IMCreateRecord(&recordList, Data, &fileNameInfo->Name, &processNameInfo->ProcessName));
+    NT_IF_FAIL_LEAVE(IMCreateRecord(&recordList, Data, &fileNameInfo->Name, &processNameInfo->FullName));
 
     // we are only allow .dll files
     if (RtlCompareUnicodeString(&fileNameInfo->Extension, &strAllowedExt, TRUE) != 0)

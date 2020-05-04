@@ -32,6 +32,9 @@ Kernel mode
 //  Definitions.
 //------------------------------------------------------------------------
 
+//
+// tags for memory
+//
 #define IM_KRECORDS_TAG ('IMkt')
 #define IM_BUFFER_TAG ('IMbt')
 

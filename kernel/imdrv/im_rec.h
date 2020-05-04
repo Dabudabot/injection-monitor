@@ -114,7 +114,8 @@ _Check_return_
     IMCreateRecord(
         _Outptr_ PIM_KRECORD_LIST *RecordList,
         _In_ PFLT_CALLBACK_DATA Data,
-        _In_ PUNICODE_STRING FileName);
+        _In_ PUNICODE_STRING FileName,
+        _In_ PUNICODE_STRING ProcessName);
 
 VOID IMFreeRecord(
     _In_ PIM_KRECORD_LIST RecordList);

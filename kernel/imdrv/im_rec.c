@@ -209,7 +209,8 @@ _Check_return_
     IMCreateRecord(
         _Outptr_ PIM_KRECORD_LIST *RecordList,
         _In_ PFLT_CALLBACK_DATA Data,
-        _In_ PUNICODE_STRING FileName)
+        _In_ PUNICODE_STRING FileName,
+        _In_ PUNICODE_STRING ProcessName)
 {
   NTSTATUS status = STATUS_SUCCESS;
   PIM_KRECORD_LIST newRecord = NULL;
@@ -239,7 +240,9 @@ _Check_return_
     newRecord->Record.TotalLength = sizeof(IM_KRECORD);
     KeQuerySystemTime(&newRecord->Record.Time);
 
-    NT_IF_FAIL_LEAVE(IMCopyString(FileName, &newRecord->Record.NameSize, &newRecord->Record.Name, &newRecord->Record.TotalLength));
+    NT_IF_FAIL_LEAVE(IMCopyString(FileName, &newRecord->Record.Data[IM_FILE_NAME_INDEX].Size, &newRecord->Record.Data[IM_FILE_NAME_INDEX].Buffer, &newRecord->Record.TotalLength));
+
+    NT_IF_FAIL_LEAVE(IMCopyString(ProcessName, &newRecord->Record.Data[IM_PROCESS_NAME_INDEX].Size, &newRecord->Record.Data[IM_PROCESS_NAME_INDEX].Buffer, &newRecord->Record.TotalLength));
   }
   __finally
   {

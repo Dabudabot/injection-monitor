@@ -64,7 +64,7 @@ _Check_return_
     IMCopyString(
         _In_ PUNICODE_STRING Src,
         _Out_ PULONG DestSize,
-        _Out_ PWCHAR *Dest,
+        _Out_ PVOID *Dest,
         _Inout_ PULONG TotalSize);
 
 _Check_return_
