@@ -223,8 +223,6 @@ static _Check_return_
 
   Globals.DriverObject = DriverObject;
   Globals.LogSequenceNumber = 0;
-  Globals.CSGOProcessId = NULL;
-  Globals.CS16ProcessId = NULL;
 
   __try
   {
@@ -237,8 +235,6 @@ static _Check_return_
                                     sizeof(IM_KRECORD_LIST),
                                     IM_KRECORDS_TAG,
                                     0);
-
-    NT_IF_FAIL_LEAVE(IMAllocateResource(&Globals.Lock));
   }
   __finally
   {
@@ -265,11 +261,6 @@ IMDeinitializeGlobals()
   IMDeinitList(&Globals.RecordHead);
 
   ExDeleteNPagedLookasideList(&Globals.RecordsLookaside);
-
-  if (NULL != Globals.Lock)
-  {
-    IMFreeResource(Globals.Lock);
-  }
 
   LOG(("[IM] Globals deinitialized\n"));
 }

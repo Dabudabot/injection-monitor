@@ -66,3 +66,42 @@ _Check_return_
         _Out_ PULONG DestSize,
         _Out_ PWCHAR *Dest,
         _Inout_ PULONG TotalSize);
+
+_Check_return_
+    NTSTATUS
+    IMAllocateUnicodeString(
+        _Inout_ PUNICODE_STRING String,
+        _In_ USHORT Size);
+
+_Check_return_
+    NTSTATUS
+    IMCopyUnicodeString(
+        _Inout_ PUNICODE_STRING DestinationString,
+        _In_ PCUNICODE_STRING SourceString);
+
+_Check_return_
+    NTSTATUS
+    IMCopyUnicodeStringEx(
+        _Inout_ PUNICODE_STRING DestinationString,
+        _In_ PCUNICODE_STRING SourceString,
+        _In_ ULONG Start,
+        _In_ ULONG Length);
+
+BOOLEAN
+IMIsContainsString(
+    _In_ PUNICODE_STRING String,
+    _In_ PUNICODE_STRING SubString);
+
+BOOLEAN
+IMIsStartWithString(
+    _In_ PUNICODE_STRING String,
+    _In_ PUNICODE_STRING SubString);
+
+_Check_return_
+    NTSTATUS
+    IMSplitString(
+        _In_ PUNICODE_STRING String,
+        _Outptr_ PUNICODE_STRING *Beginning,
+        _Outptr_ PUNICODE_STRING *Ending,
+        _In_ WCHAR Delimeter,
+        _In_ LONG Occurrence);

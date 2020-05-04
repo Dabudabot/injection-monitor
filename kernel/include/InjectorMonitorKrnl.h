@@ -21,7 +21,7 @@ typedef struct _IM_KRECORD
   //
   // Order number of the record for logging
   //
-  ULONGLONG SequenceNumber; 
+  ULONGLONG SequenceNumber;
 
   //
   // Time when record was created, also for logging
@@ -34,7 +34,7 @@ typedef struct _IM_KRECORD
   BOOLEAN IsBlocked;
 
   //
-  // is succeded
+  // is pre operation callback succeded (just for log)
   //
   BOOLEAN IsSucceded;
 
@@ -65,7 +65,7 @@ typedef struct _IM_KRECORD_LIST
   //
   IM_KRECORD Record;
 
-} IM_KRECORD_LIST, * PIM_KRECORD_LIST;
+} IM_KRECORD_LIST, *PIM_KRECORD_LIST;
 
 //
 //  Defines the commands between the utility and the filter
@@ -79,7 +79,7 @@ typedef enum _IM_INTERFACE_COMMAND
 } IM_INTERFACE_COMMAND;
 
 #pragma warning(push)
-#pragma warning(disable:4200) // disable warnings for structures with zero length arrays.
+#pragma warning(disable : 4200) // disable warnings for structures with zero length arrays.
 
 //
 // Communication structure

@@ -33,7 +33,7 @@ Kernel mode
 //------------------------------------------------------------------------
 
 #define IM_KRECORDS_TAG ('IMkt')
-#define IM_BUFFER_TAG   ('IMbt')
+#define IM_BUFFER_TAG ('IMbt')
 
 //------------------------------------------------------------------------
 //  Structures.
@@ -74,16 +74,6 @@ typedef struct _IM_GLOBALS
   NPAGED_LOOKASIDE_LIST RecordsLookaside;
 
   //
-  //  Monitoring cs 1.6 process ID
-  //
-  HANDLE CS16ProcessId;
-
-  //
-  //  Monitoring cs go process ID
-  //
-  HANDLE CSGOProcessId;
-
-  //
   //  Variable for maintaining LogRecord sequence numbers.
   //
   __volatile LONGLONG LogSequenceNumber;
@@ -92,9 +82,6 @@ typedef struct _IM_GLOBALS
   // blocked records
   //
   IM_KRECORD_HEAD RecordHead;
-
-  // Global driver lock.
-  PERESOURCE     Lock;
 
 } IM_GLOBALS, *PIM_GLOBALS;
 

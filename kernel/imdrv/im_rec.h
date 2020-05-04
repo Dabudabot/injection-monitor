@@ -41,35 +41,35 @@ Kernel mode
 //
 typedef struct _IM_KRECORD_HEAD
 {
-  //
-  // size of IM_KRECORD struct
-  //
-  ULONG RecordStructSize;
+    //
+    // size of IM_KRECORD struct
+    //
+    ULONG RecordStructSize;
 
-  //
-  //  List of records with data to send to user mode.
-  //
-  LIST_ENTRY RecordList;
+    //
+    //  List of records with data to send to user mode.
+    //
+    LIST_ENTRY RecordList;
 
-  //
-  //  Protection for the list of records
-  //
-  KSPIN_LOCK RecordListLock;
+    //
+    //  Protection for the list of records
+    //
+    KSPIN_LOCK RecordListLock;
 
-  //
-  // pushing record event
-  //
-  PKEVENT OutputRecordEvent;
+    //
+    // pushing record event
+    //
+    PKEVENT OutputRecordEvent;
 
-  //
-  //  Maximum amount of records we could keep in memory
-  //
-  LONG MaxRecordsToPush;
+    //
+    //  Maximum amount of records we could keep in memory
+    //
+    LONG MaxRecordsToPush;
 
-  //
-  //  Current amount of records we keep in memory
-  //
-  __volatile LONGLONG RecordsPushed;
+    //
+    //  Current amount of records we keep in memory
+    //
+    __volatile LONGLONG RecordsPushed;
 
 } IM_KRECORD_HEAD, *PIM_KRECORD_HEAD;
 
@@ -114,9 +114,7 @@ _Check_return_
     IMCreateRecord(
         _Outptr_ PIM_KRECORD_LIST *RecordList,
         _In_ PFLT_CALLBACK_DATA Data,
-        _In_ BOOLEAN IsSuccess,
-        _In_ BOOLEAN IsBlocked,
-        _In_ PUNICODE_STRING Name);
+        _In_ PUNICODE_STRING FileName);
 
 VOID IMFreeRecord(
     _In_ PIM_KRECORD_LIST RecordList);

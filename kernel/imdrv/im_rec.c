@@ -142,6 +142,18 @@ VOID IMPush(
     _In_ PLIST_ENTRY ListEntry,
     _In_ PIM_KRECORD_HEAD RecordsHead)
 {
+  PAGED_CODE();
+
+  IF_FALSE_RETURN(ListEntry != NULL);
+  IF_FALSE_RETURN(RecordsHead != NULL);
+
+  ARPushToList(
+      &RecordsHead->RecordListLock,
+      &RecordsHead->RecordList,
+      ListEntry,
+      RecordsHead->OutputRecordEvent);
+
+  InterlockedIncrement64(&RecordsHead->RecordsPushed);
 }
 
 VOID IMPushToList(
@@ -150,6 +162,21 @@ VOID IMPushToList(
     _In_ PLIST_ENTRY ListEntry,
     _In_opt_ PKEVENT Event)
 {
+  KIRQL oldIrql;
+  PAGED_CODE();
+
+  IF_FALSE_RETURN(SpinLock != NULL);
+  IF_FALSE_RETURN(ListHead != NULL);
+  IF_FALSE_RETURN(ListEntry != NULL);
+  IF_FALSE_RETURN(Event != NULL);
+
+  KeAcquireSpinLock(SpinLock, &oldIrql);
+
+  InsertTailList(ListHead, ListEntry);
+
+  KeSetEvent(Event, IO_NO_INCREMENT, FALSE);
+
+  KeReleaseSpinLock(SpinLock, oldIrql);
 }
 
 VOID IMPop(
@@ -182,9 +209,7 @@ _Check_return_
     IMCreateRecord(
         _Outptr_ PIM_KRECORD_LIST *RecordList,
         _In_ PFLT_CALLBACK_DATA Data,
-        _In_ BOOLEAN IsSuccess,
-        _In_ BOOLEAN IsBlocked,
-        _In_ PUNICODE_STRING Name)
+        _In_ PUNICODE_STRING FileName)
 {
   NTSTATUS status = STATUS_SUCCESS;
   PIM_KRECORD_LIST newRecord = NULL;
@@ -192,7 +217,7 @@ _Check_return_
   PAGED_CODE();
 
   IF_FALSE_RETURN_RESULT(Data != NULL, STATUS_INVALID_PARAMETER_2);
-  IF_FALSE_RETURN_RESULT(Name != NULL, STATUS_INVALID_PARAMETER_5);
+  IF_FALSE_RETURN_RESULT(FileName != NULL, STATUS_INVALID_PARAMETER_3);
   IF_FALSE_RETURN_RESULT(KeGetCurrentIrql() <= APC_LEVEL, STATUS_UNSUCCESSFUL);
   IF_FALSE_RETURN_RESULT(Globals.RecordHead.RecordsPushed < Globals.RecordHead.MaxRecordsToPush, STATUS_MAX_REFERRALS_EXCEEDED);
 
@@ -213,15 +238,11 @@ _Check_return_
     newRecord->Record.Debug = 0xCEFAADDE;
     newRecord->Record.TotalLength = sizeof(IM_KRECORD);
     KeQuerySystemTime(&newRecord->Record.Time);
-    newRecord->Record.IsBlocked = IsBlocked;
-    newRecord->Record.IsSucceded = IsSuccess;
 
-    NT_IF_FAIL_LEAVE(IMCopyString(Name, &newRecord->Record.NameSize, &newRecord->Record.Name, &newRecord->Record.TotalLength));
+    NT_IF_FAIL_LEAVE(IMCopyString(FileName, &newRecord->Record.NameSize, &newRecord->Record.Name, &newRecord->Record.TotalLength));
   }
   __finally
   {
-    IMFreeString(Name);
-
     if (NT_ERROR(status))
     {
       if (NULL != newRecord)
@@ -246,7 +267,7 @@ VOID IMFreeRecord(
 
   IF_FALSE_RETURN(RecordList != NULL);
 
-  IMFreeNonPagedBuffer((PVOID) RecordList->Record.Name);
+  IMFreeNonPagedBuffer((PVOID)RecordList->Record.Name);
 
   ExFreeToNPagedLookasideList(&Globals.RecordsLookaside, RecordList);
 }

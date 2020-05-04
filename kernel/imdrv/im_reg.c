@@ -47,44 +47,39 @@ Kernel mode
 //
 CONST FLT_OPERATION_REGISTRATION Callbacks[] = {
 
-  { 
-    IRP_MJ_CREATE,
-    FLTFL_OPERATION_REGISTRATION_SKIP_PAGING_IO,
-    IMPreCreate,
-    NULL,
-    NULL 
-  },
+    {IRP_MJ_CREATE,
+     FLTFL_OPERATION_REGISTRATION_SKIP_PAGING_IO,
+     IMPreCreate,
+     IMPostCreate,
+     NULL},
 
-  { IRP_MJ_OPERATION_END,
-  0, NULL, NULL, NULL }
-};
+    {IRP_MJ_OPERATION_END,
+     0, NULL, NULL, NULL}};
 
 //
 //  This defines what we want to filter with FltMgr
 //
 CONST FLT_REGISTRATION FilterRegistration = {
 
-  sizeof(FLT_REGISTRATION),               //  Size
-  FLT_REGISTRATION_VERSION,               //  Version
-  0,                                      //  Flags
+    sizeof(FLT_REGISTRATION), //  Size
+    FLT_REGISTRATION_VERSION, //  Version
+    0,                        //  Flags
 
-  NULL,                               //  Context
-  Callbacks,                          //  Operation callbacks
+    NULL,      //  Context
+    Callbacks, //  Operation callbacks
 
-  DriverUnload,                       //  FilterUnload
+    DriverUnload, //  FilterUnload
 
-  NULL,                               //  InstanceSetup
-  IMInstanceQueryTeardown,            //  InstanceQueryTeardown
-  NULL,                               //  InstanceTeardownStart
-  NULL,                               //  InstanceTeardownComplete
+    NULL,                    //  InstanceSetup
+    IMInstanceQueryTeardown, //  InstanceQueryTeardown
+    NULL,                    //  InstanceTeardownStart
+    NULL,                    //  InstanceTeardownComplete
 
-  NULL,                               //  GenerateFileName
-  NULL,                               //  GenerateDestinationFileName
-  NULL,                               //  NormalizeNameComponent
-  NULL,
-  NULL
-};
-
+    NULL, //  GenerateFileName
+    NULL, //  GenerateDestinationFileName
+    NULL, //  NormalizeNameComponent
+    NULL,
+    NULL};
 
 //
 //  Tells the compiler to restore the given section types back to their previous
@@ -94,4 +89,3 @@ CONST FLT_REGISTRATION FilterRegistration = {
 #pragma data_seg()
 #pragma const_seg()
 #endif
-
