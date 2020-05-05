@@ -86,9 +86,11 @@ _Check_return_
 
       IMDeinitList(RecordHead);
     }
+    else
+    {
+      LOG(("[IM] List initialized\n"));
+    }
   }
-
-  LOG(("[IM] List initialized\n"));
 
   return STATUS_SUCCESS;
 }
@@ -177,6 +179,8 @@ VOID IMPushToList(
   KeSetEvent(Event, IO_NO_INCREMENT, FALSE);
 
   KeReleaseSpinLock(SpinLock, oldIrql);
+
+  LOG(("[IM] Record pushed to list\n"));
 }
 
 VOID IMPop(
@@ -201,6 +205,8 @@ VOID IMPop(
   }
 
   KeReleaseSpinLock(Lock, oldIrql);
+
+  LOG(("[IM] Record poped\n"));
 }
 
 _Check_return_
@@ -222,6 +228,8 @@ _Check_return_
   IF_FALSE_RETURN_RESULT(KeGetCurrentIrql() <= APC_LEVEL, STATUS_UNSUCCESSFUL);
   IF_FALSE_RETURN_RESULT(Globals.RecordHead.RecordsPushed < Globals.RecordHead.MaxRecordsToPush, STATUS_MAX_REFERRALS_EXCEEDED);
 
+  LOG(("[IM] Record creation start\n"));
+
   __try
   {
 
@@ -230,6 +238,7 @@ _Check_return_
     if (NULL == newRecord)
     {
       status = STATUS_INSUFFICIENT_RESOURCES;
+      LOG(("[IM] INSUFFICIENT resources to create record\n"));
       __leave;
     }
 
@@ -248,6 +257,7 @@ _Check_return_
   {
     if (NT_ERROR(status))
     {
+      LOG_B(("[IM] record creation failed\n"));
       if (NULL != newRecord)
       {
         IMFreeRecord(newRecord);
@@ -257,6 +267,7 @@ _Check_return_
     {
       newRecord->Record.SequenceNumber = InterlockedIncrement64(&Globals.LogSequenceNumber); // todo may overrun
       *RecordList = newRecord;
+      LOG(("[IM] Record created\n"));
     }
   }
 
@@ -270,7 +281,12 @@ VOID IMFreeRecord(
 
   IF_FALSE_RETURN(RecordList != NULL);
 
-  IMFreeNonPagedBuffer((PVOID)RecordList->Record.Name);
+  for (ULONG i = 0; i < IM_AMOUNT_OF_DATA; i++)
+  {
+    IMFreeNonPagedBuffer((PVOID)RecordList->Record.Data[i].Buffer);
+  }
 
   ExFreeToNPagedLookasideList(&Globals.RecordsLookaside, RecordList);
+
+  LOG(("[IM] Record freed\n"));
 }

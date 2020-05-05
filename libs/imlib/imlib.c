@@ -154,6 +154,8 @@ _Check_return_
   IF_FALSE_RETURN_RESULT(Callback != NULL, E_INVALIDARG);
   IF_FALSE_RETURN_RESULT(Context != NULL, E_INVALIDARG);
 
+  LOG(("[IM] Library initialization\n"));
+
   __try
   {
     HR_IF_FAIL_LEAVE(IMInitContext(Callback, Context));
@@ -166,10 +168,15 @@ _Check_return_
   {
     if (FAILED(hResult))
     {
+      LOG_B(("[IM] Library initialization failed\n"));
       IMDeinitilizeImpl(Context);
     }
+    else
+    {
+      LOG(("[IM] Library initialized\n"));
+    }
   }
-
+  
   return hResult;
 }
 
@@ -179,6 +186,8 @@ VOID IMDeinitilizeImpl(
   IF_FALSE_RETURN(Context != NULL);
 
   IMDeinitContext(Context);
+
+  LOG(("[IM] Library deinitialized\n"));
 }
 
 _Check_return_
@@ -192,6 +201,8 @@ _Check_return_
   IF_FALSE_RETURN_RESULT(PortName != NULL, E_INVALIDARG);
   IF_FALSE_RETURN_RESULT(Port != NULL, E_INVALIDARG);
 
+  LOG(("[IM] Connecting to the kernel component\n"));
+
   hResult = FilterConnectCommunicationPort(PortName,
                                            0,
                                            NULL,
@@ -202,6 +213,16 @@ _Check_return_
   if (E_ACCESSDENIED == hResult)
   {
     printf("[IM] You must run as administrator, failed to establish kernel connection\n");
+    
+  }
+
+  if (FAILED(hResult))
+  {
+    LOG_B(("[IM] Kernel connection failed\n"));
+  }
+  else
+  {
+    LOG(("[IM] Kernel component connected\n"));
   }
 
   return hResult;
@@ -215,6 +236,8 @@ _Check_return_
 {
   IF_FALSE_RETURN_RESULT(Callback != NULL, E_INVALIDARG);
   IF_FALSE_RETURN_RESULT(Context != NULL, E_INVALIDARG);
+
+  LOG(("[IM] Library context initialized\n"));
 
   Context->Port = INVALID_HANDLE_VALUE;
   Context->RecordCallback = Callback;
@@ -230,6 +253,8 @@ VOID IMDeinitContext(
 {
   IF_FALSE_RETURN_RESULT(Context != NULL, E_INVALIDARG);
 
+  LOG(("[IM] Waiting to kill requester thread\n"));
+
   Context->isDown = TRUE;
 
   WaitForSingleObject(Context->Semaphore, INFINITE);
@@ -238,19 +263,24 @@ VOID IMDeinitContext(
   {
     CloseHandle(Context->Port);
     Context->Port = INVALID_HANDLE_VALUE;
+    LOG(("[IM] Port closed\n"));
   }
 
   if (INVALID_HANDLE_VALUE != Context->Semaphore) // todo not sure
   {
     CloseHandle(Context->Semaphore);
     Context->Semaphore = INVALID_HANDLE_VALUE;
+    LOG(("[IM] Semaphore closed\n"));
   }
 
   if (INVALID_HANDLE_VALUE != Context->Thread) // todo not sure
   {
     CloseHandle(Context->Thread);
     Context->Thread = INVALID_HANDLE_VALUE;
+    LOG(("[IM] Thread closed\n"));
   }
+
+  LOG(("[IM] Library context deinitialized\n"));
 }
 
 _Check_return_
@@ -264,6 +294,8 @@ _Check_return_
 
   IF_FALSE_RETURN_RESULT(Callback != NULL, E_INVALIDARG);
   IF_FALSE_RETURN_RESULT(Context != NULL, E_INVALIDARG);
+
+  LOG(("[IM] Requester thread initialization\n"));
 
   Context->Semaphore = CreateSemaphoreW(NULL,
                                         0,
@@ -288,7 +320,10 @@ _Check_return_
   {
     hResult = GetLastError();
     LOG_B(("[IM] Could not create logging thread: %d\n", hResult));
+    return hResult;
   }
+
+  LOG(("[IM] Requester thread initialized\n"));
 
   return hResult;
 }
@@ -311,6 +346,8 @@ IMRetrieveRecords(
   IF_FALSE_RETURN_RESULT(lpParameter != NULL, E_INVALIDARG);
 
   context = (PIM_CONTEXT)lpParameter;
+
+  LOG(("[IM] Requester thread loop entering: \n"));
 
 #pragma warning(push)
 #pragma warning(disable : 4127) // conditional expression is constant
@@ -336,6 +373,7 @@ IMRetrieveRecords(
 
     if (HRESULT_FROM_WIN32(ERROR_NO_MORE_ITEMS) == hResult)
     {
+      LOG(("  [IM] No items from kernel\n"));
       Sleep(200);
       continue;
     }
@@ -344,7 +382,7 @@ IMRetrieveRecords(
     {
       if (HRESULT_FROM_WIN32(ERROR_INVALID_HANDLE) == hResult)
       {
-        LOG(("[IM] The kernel component of minispy has unloaded. Exiting\n"));
+        LOG(("[IM] The kernel component of minispy has unloaded. Exiting. Consider deinitialization\n"));
         break;
       }
 
@@ -370,15 +408,18 @@ IMRetrieveRecords(
 
       if (IS_ERROR(hResult))
       {
-        LOG_B("[IM] error send move record\n");
+        LOG_B("[IM] error move record\n");
         continue;
       }
 
+      LOG(("  [IM] Sending item to callback\n"));
       context->RecordCallback(record);
 
       IMFreeRecord(record);
     }
   }
+
+  LOG(("[IM] Requestor loop broken\n"));
 
   ReleaseSemaphore(context->Semaphore, 1, NULL);
 
@@ -401,6 +442,8 @@ IMSend(
   IF_FALSE_RETURN_RESULT(Buffer != 0, E_INVALIDARG);
   IF_FALSE_RETURN_RESULT(ReturnLen != NULL, E_INVALIDARG);
 
+  LOG(("[IM] Sending message to kernel component 0x%x\n", Command));
+
   command.Command = (IM_INTERFACE_COMMAND)Command;
 
   hResult = FilterSendMessage(
@@ -410,6 +453,8 @@ IMSend(
       (LPVOID)Buffer,
       BufferSize,
       ReturnLen);
+
+  LOG(("[IM] Kernel respond 0x%x\n", hResult));
 
   return hResult;
 }
@@ -434,6 +479,8 @@ _Check_return_
   sourceRecord = *SourceRecord;
 
   IF_FALSE_RETURN_RESULT(sourceRecord != NULL, E_INVALIDARG);
+
+  LOG(("[IM] Moving kernel record to user record\n"));
 
   kernelRecord = (PIM_KRECORD)sourceRecord;
   record = (PIM_RECORD)malloc(sizeof(IM_RECORD));
@@ -480,6 +527,7 @@ _Check_return_
       record->FileName = tempBuffer;
       break;
     default:
+      LOG_B(("[IM] Unexpected index\n"));
       free(tempBuffer);
       break;
     }
@@ -490,6 +538,8 @@ _Check_return_
 
   *SourceRecord = sourceRecord;
   *TargetRecord = record;
+
+  LOG(("[IM] Record moved\n"));
 
   return S_OK;
 }
@@ -509,4 +559,6 @@ VOID IMFreeRecord(PIM_RECORD Record)
   }
 
   free(Record);
+
+  LOG(("[IM] Record freed\n"));
 }

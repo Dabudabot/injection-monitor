@@ -86,6 +86,8 @@ Return value:
 
   *NameInformation = NULL;
 
+  LOG(("[IM] Getting file name information\n"));
+
   __try
   {
     if (FlagOn(Data->Iopb->OperationFlags, SL_OPEN_TARGET_DIRECTORY))
@@ -126,11 +128,16 @@ Return value:
   {
     if (!NT_SUCCESS(status))
     {
+      LOG_B(("[IM] file name information failed\n"));
       if (nameInfo != NULL)
       {
         FltReleaseFileNameInformation(nameInfo);
         nameInfo = NULL;
       }
+    }
+    else
+    {
+      LOG(("[IM] file name information retrieved\n"));
     }
   }
 
@@ -156,12 +163,15 @@ _Check_return_
 
   *NameInformation = NULL;
 
+  LOG(("[IM] Getting process name information\n"));
+
   __try
   {
     eProcess = PsGetCurrentProcess();
 
     if (NULL == eProcess)
     {
+      LOG_B(("[IM] EPROCESS strcute are WRONG\n"));
       __leave;
     }
 
@@ -176,6 +186,7 @@ _Check_return_
     if (STATUS_INFO_LENGTH_MISMATCH != status)
     {
       status = STATUS_UNSUCCESSFUL;
+      LOG_B(("[IM] ZwQueryInformationProcess to get buffer size are failed\n"));
       __leave;
     }
 
@@ -207,10 +218,12 @@ _Check_return_
 
     if (NT_ERROR(status))
     {
+      LOG_B(("[IM] Get process name information failed\n"));
       IMReleaseProcessNameInformation(nameInfo);
     }
     else
     {
+      LOG(("[IM] process name information retrieved\n"));
       *NameInformation = nameInfo;
     }
   }
@@ -239,4 +252,6 @@ VOID IMReleaseProcessNameInformation(
   }
 
   ExFreePool(NameInformation);
+
+  LOG(("[IM] process name information released\n"));
 }

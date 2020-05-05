@@ -72,6 +72,7 @@ _Check_return_
     if (!NT_SUCCESS(status))
     {
       freeBuffer = TRUE;
+      LOG_B(("[IM] Resource buffer allocation failed\n"));
       __leave;
     }
 
@@ -79,6 +80,7 @@ _Check_return_
     if (!NT_SUCCESS(status))
     {
       deleteResource = TRUE;
+      LOG_B(("[IM] Resource initilazation failed\n"));
       __leave;
     }
 
@@ -100,9 +102,11 @@ _Check_return_
         IMFreeNonPagedBuffer(resource);
       }
     }
+    else
+    {
+      LOG(("[IM] Resource 0x%p allocated\n", (PVOID)Resource));
+    }
   }
-
-  LOG(("[IM] Resource 0x%p allocated\n", (PVOID)Resource));
 
   return status;
 }
@@ -188,6 +192,8 @@ _Check_return_
   IF_FALSE_RETURN_RESULT(TotalSize != NULL, STATUS_INVALID_PARAMETER_4);
   IF_FALSE_RETURN_RESULT(KeGetCurrentIrql() == PASSIVE_LEVEL, STATUS_REQUEST_NOT_ACCEPTED);
 
+  LOG(("[IM] String copy started\n"));
+
   if (NULL != *Dest)
   {
     // check for equality
@@ -196,6 +202,7 @@ _Check_return_
     if (!result)
     {
       // already equal
+      LOG(("[IM] Strings already equal\n"));
       return STATUS_SUCCESS;
     }
 
@@ -211,6 +218,8 @@ _Check_return_
 
   RtlCopyMemory(*Dest, Src->Buffer, Src->Length);
   RtlZeroMemory((PCHAR)(*Dest) + Src->Length, 2); // just in case in order to null terminate
+
+  LOG(("[IM] Strings copied\n"));
 
   return STATUS_SUCCESS;
 }
@@ -234,6 +243,8 @@ _Check_return_
 
   String->Length = 0;
   String->MaximumLength = Size;
+
+  LOG(("[IM] String allocated\n"));
 
   // The buffer allocated should be freed by the caller.
 
@@ -262,6 +273,8 @@ _Check_return_
                 : __WARNING_INVALID_PARAM_VALUE_1) // '_Param_(1)->Buffer' could be '0'.
   RtlCopyUnicodeString(DestinationString, SourceString);
 
+  LOG(("[IM] String to string copied\n"));
+
   return status;
 }
 
@@ -288,6 +301,8 @@ _Check_return_
   RtlCopyMemory(DestinationString->Buffer, (SourceString->Buffer + Start), Length * sizeof(WCHAR));
   RtlZeroMemory(DestinationString->Buffer + Length, sizeof(WCHAR)); // '\0'
   DestinationString->Length = Length;
+
+  LOG(("[IM] String to string copied partially\n"));
 
   return STATUS_SUCCESS;
 }
@@ -317,6 +332,7 @@ IMIsContainsString(
       j++;
       if (SubString->Length == j)
       {
+        LOG(("[IM] String contains string\n"));
         return TRUE;
       }
     }
@@ -325,6 +341,8 @@ IMIsContainsString(
       j = 0;
     }
   }
+
+  LOG(("[IM] String not contains string\n"));
 
   return FALSE;
 }
@@ -354,15 +372,18 @@ IMIsStartWithString(
       j++;
       if (SubString->Length == j)
       {
+        LOG(("[IM] String starts with string\n"));
         return TRUE;
       }
     }
     else
     {
+      LOG(("[IM] String does not start with string\n"));
       return FALSE;
     }
   }
 
+  LOG(("[IM] String does not start with string\n"));
   return FALSE;
 }
 
@@ -391,6 +412,8 @@ _Check_return_
   IF_FALSE_RETURN_RESULT(Ending != NULL, STATUS_INVALID_PARAMETER_3);
   IF_FALSE_RETURN_RESULT(Ending->Buffer == NULL, STATUS_INVALID_PARAMETER_3);
   IF_FALSE_RETURN_RESULT(Ending->Length == 0, STATUS_INVALID_PARAMETER_3);
+
+  LOG(("[IM] String splitting started\n"));
 
   if (Occurrence < 0)
   {
@@ -424,6 +447,8 @@ _Check_return_
   NT_IF_FAIL_RETURN(IMCopyUnicodeStringEx(Beginning, String, 0, i));
 
   NT_IF_FAIL_RETURN(IMCopyUnicodeStringEx(Ending, String, i, String->Length - i));
+
+  LOG(("[IM] String splitted\n"));
   
   return status;
 }

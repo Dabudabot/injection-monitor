@@ -71,6 +71,8 @@ IMPreCreate(
   FLT_ASSERT(Data->Iopb != NULL);
   FLT_ASSERT(Data->Iopb->MajorFunction == IRP_MJ_CREATE);
 
+  DbgBreakPoint();
+
   desiredAccess = Data->Iopb->Parameters.Create.SecurityContext->DesiredAccess;
 
   if (FlagOn(desiredAccess, FILE_EXECUTE)) // CHECK THIS
@@ -116,6 +118,8 @@ IMPostCreate(
   FLT_ASSERT(Data->Iopb != NULL);
   FLT_ASSERT(Data->Iopb->MajorFunction == IRP_MJ_CREATE);
 
+  LOG(("[IM] Post create start\n"));
+
   __try
   {
     // first we have to get our process name information
@@ -124,6 +128,7 @@ IMPostCreate(
     // we are looking only for specific process names
     if (RtlCompareUnicodeString(&processNameInfo->ProcessName, &strTargetProcess1, TRUE) != 0  && RtlCompareUnicodeString(&processNameInfo->ProcessName, &strTargetProcess2, TRUE) != 0)
     {
+      LOG(("[IM] Not our process name, do nothing\n"));
       __leave;
     }
 
@@ -138,6 +143,7 @@ IMPostCreate(
     if (RtlCompareUnicodeString(&fileNameInfo->Extension, &strAllowedExt, TRUE) != 0)
     {
       isBlocked = TRUE;
+      LOG(("[IM] Extention not a .dll\n"));
       __leave;
     }
 
@@ -145,6 +151,7 @@ IMPostCreate(
     if (IMIsContainsString(&fileNameInfo->Name, &strResticted)) // CHECK THIS
     {
       isBlocked = TRUE;
+      LOG(("[IM] Restricted dll\n"));
       __leave;
     }
     
@@ -152,11 +159,17 @@ IMPostCreate(
     if (!IMIsStartWithString(&fileNameInfo->Name, &strAllowedDir1) && !IMIsStartWithString(&fileNameInfo->Name, &processNameInfo->ParentDir)) // CHECK THIS
     {
       isBlocked = TRUE;
+       LOG(("[IM] Restricted dll path\n"));
       __leave;
     }
   }
   __finally
   {
+    if (NT_ERROR(status))
+    {
+      LOG_B(("[IM] Operatin failed\n"));
+    }
+
     if (NULL != fileNameInfo)
     {
       FltReleaseFileNameInformation(fileNameInfo);
@@ -172,6 +185,7 @@ IMPostCreate(
       FltCancelFileOpen(FltObjects->Instance, FltObjects->FileObject);
       Data->IoStatus.Status = STATUS_ACCESS_DENIED;
       Data->IoStatus.Information = 0;
+      LOG(("[IM] Loading blocked\n"));
     }
 
     if (NULL != recordList)
@@ -179,6 +193,7 @@ IMPostCreate(
       recordList->Record.IsBlocked = isBlocked;
       if (NT_SUCCESS(status))
       {
+        LOG(("[IM] Operation succeeded\n"));
         recordList->Record.IsSucceded = TRUE;
       }
       IMPush(&recordList->List, &Globals.RecordHead);

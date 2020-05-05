@@ -136,9 +136,11 @@ Status of the operation.
 
       IMDeinitializeGlobals();
     }
+    else
+    {
+      LOG(("[IM] Driver loaded\n"));
+    }
   }
-
-  LOG(("[IM] Driver loaded\n"));
 
   return status;
 }
@@ -244,9 +246,11 @@ static _Check_return_
 
       IMDeinitializeGlobals();
     }
+    else
+    {
+      LOG(("[IM] Globals initialized\n"));
+    }
   }
-
-  LOG(("[IM] Globals initialized\n"));
 
   return status;
 }

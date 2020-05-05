@@ -136,9 +136,11 @@ _Check_return_
       LOG_B(("[IM] Communication initializing failed\n"));
       IMDeinitCommunication(*Port);
     }
+    else
+    {
+      LOG(("[IM] Communication initialized\n"));
+    }
   }
-
-  LOG(("[IM] Communication initialized\n"));
 
   return status;
 }
@@ -151,6 +153,8 @@ VOID IMDeinitCommunication(
   IF_FALSE_RETURN(Port != NULL);
 
   FltCloseCommunicationPort(Port);
+
+  LOG(("[IM] Communication deinitialized\n"));
 }
 
 NTSTATUS
@@ -170,6 +174,9 @@ IMConnect(
 
   FLT_ASSERT(Globals.ClientPort == NULL);
   Globals.ClientPort = ClientPort;
+
+  LOG(("[IM] Client connected\n"));
+
   return STATUS_SUCCESS;
 }
 
@@ -188,6 +195,8 @@ VOID IMDisconnect(
   //
 
   FltCloseClientPort(Globals.Filter, &Globals.ClientPort);
+
+  LOG(("[IM] Client disconnected\n"));
 }
 
 NTSTATUS
@@ -323,8 +332,8 @@ IMMessage(
   }
   else
   {
-
     status = STATUS_INVALID_PARAMETER;
+    LOG_B(("[IM] message processed with STATUS_INVALID_PARAMETER\n"));
   }
 
   LOG(("[IM] Message processed with status 0x%x", status));
@@ -388,6 +397,8 @@ _Check_return_
   IF_FALSE_RETURN_RESULT(OutputBufferSize != 0, STATUS_INVALID_PARAMETER_3);
   IF_FALSE_RETURN_RESULT(ReturnOutputBufferLength != NULL, STATUS_INVALID_PARAMETER_4);
 
+  LOG(("[IM] Records copy start\n"));
+
   KeAcquireSpinLock(listLock, &oldIrql);
 
   while (!IsListEmpty(listEntry))
@@ -414,8 +425,13 @@ _Check_return_
     {
       RtlCopyMemory(buffer, &recordList->Record, sizeOfRecord);
       buffer += sizeOfRecord;
-      RtlCopyMemory(buffer, recordList->Record.Name, recordList->Record.NameSize);
-      buffer += recordList->Record.NameSize;
+
+      for (ULONG i = 0; i < IM_AMOUNT_OF_DATA; i++)
+      {
+        if (recordList->Record.Data[i].Size == 0) continue;
+        RtlCopyMemory(buffer, recordList->Record.Data[i].Buffer, recordList->Record.Data[i].Size);
+        buffer += recordList->Record.Data[i].Size;
+      }
     }
     __except (EXCEPTION_EXECUTE_HANDLER)
     {
@@ -445,6 +461,8 @@ _Check_return_
 
     return STATUS_SUCCESS;
   }
+
+  LOG(("[IM] No records were copied\n"));
 
   return STATUS_NO_MORE_ENTRIES;
 }
