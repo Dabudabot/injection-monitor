@@ -108,7 +108,6 @@ typedef struct _IM_RECORD
 // This callback will be triggered when driver will decide to send to user some record
 //
 typedef HRESULT (*IM_RECORD_CALLBACK)(PIM_RECORD Record);
-typedef BOOLEAN (*IM_RECORD_FILTER)(PIM_RECORD Record, PVOID Context);
 
 //------------------------------------------------------------------------
 //  Function defintions.

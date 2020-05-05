@@ -80,7 +80,6 @@ _Check_return_
     HRESULT
     IMInitilizeImpl(
         _In_ IM_RECORD_CALLBACK Callback,
-        _Out_ HANDLE* ShutDown,
         _In_ PIM_CONTEXT Context);
 
 VOID IMDeinitilizeImpl(
@@ -128,10 +127,9 @@ VOID IMFreeRecord(PIM_RECORD Record);
 _Check_return_
     HRESULT
     IMInitilize(
-        _In_ IM_RECORD_CALLBACK Callback,
-        _Out_ HANDLE* ShutDown)
+        _In_ IM_RECORD_CALLBACK Callback)
 {
-  return IMInitilizeImpl(Callback, ShutDown, &Globals);
+  return IMInitilizeImpl(Callback, &Globals);
 }
 
 _Check_return_
@@ -148,7 +146,6 @@ _Check_return_
     HRESULT
     IMInitilizeImpl(
         _In_ IM_RECORD_CALLBACK Callback,
-        _Out_ HANDLE* ShutDown,
         _In_ PIM_CONTEXT Context)
 {
   HRESULT hResult = S_OK;
@@ -156,7 +153,6 @@ _Check_return_
 
   IF_FALSE_RETURN_RESULT(Callback != NULL, E_INVALIDARG);
   IF_FALSE_RETURN_RESULT(Context != NULL, E_INVALIDARG);
-  IF_FALSE_RETURN_RESULT(ShutDown != NULL, E_INVALIDARG);
 
   __try
   {
@@ -165,8 +161,6 @@ _Check_return_
     HR_IF_FAIL_LEAVE(IMConnect(IM_PORT_NAME, &Context->Port));
 
     HR_IF_FAIL_LEAVE(IMInitCollector(Callback, Context));
-
-    *ShutDown = Context->Semaphore;
   }
   __finally
   {
