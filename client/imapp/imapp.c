@@ -21,7 +21,6 @@ User mode
 #include "Windows.h"
 #include "stdio.h"
 
-
 HRESULT
 RecordCallback(
     PIM_RECORD Record)

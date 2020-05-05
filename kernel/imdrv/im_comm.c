@@ -428,7 +428,8 @@ _Check_return_
 
       for (ULONG i = 0; i < IM_AMOUNT_OF_DATA; i++)
       {
-        if (recordList->Record.Data[i].Size == 0) continue;
+        if (recordList->Record.Data[i].Size == 0)
+          continue;
         RtlCopyMemory(buffer, recordList->Record.Data[i].Buffer, recordList->Record.Data[i].Size);
         buffer += recordList->Record.Data[i].Size;
       }

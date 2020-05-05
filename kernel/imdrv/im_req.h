@@ -35,14 +35,14 @@ Kernel mode
 //
 typedef struct _IM_PROCESS_NAME_INFORMATION
 {
-  // ParentDir + ProcessName
-  UNICODE_STRING FullName;
+    // ParentDir + ProcessName
+    UNICODE_STRING FullName;
 
-  // only process name without prefix backslash
-  UNICODE_STRING ProcessName;
+    // only process name without prefix backslash
+    UNICODE_STRING ProcessName;
 
-  // parent dir name from root to backslash
-  UNICODE_STRING ParentDir;
+    // parent dir name from root to backslash
+    UNICODE_STRING ParentDir;
 
 } IM_PROCESS_NAME_INFORMATION, *PIM_PROCESS_NAME_INFORMATION;
 
@@ -57,8 +57,8 @@ _Check_return_
         _Outptr_ PFLT_FILE_NAME_INFORMATION *NameInformation);
 
 _Check_return_
-_IRQL_requires_(PASSIVE_LEVEL)
-    NTSTATUS
+    _IRQL_requires_(PASSIVE_LEVEL)
+        NTSTATUS
     IMGetProcessNameInformation(
         _Inout_ PFLT_CALLBACK_DATA Data,
         _Outptr_ PIM_PROCESS_NAME_INFORMATION *NameInformation);

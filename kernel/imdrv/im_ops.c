@@ -126,7 +126,7 @@ IMPostCreate(
     NT_IF_FAIL_LEAVE(IMGetProcessNameInformation(Data, &processNameInfo)); // CHECK THIS
 
     // we are looking only for specific process names
-    if (RtlCompareUnicodeString(&processNameInfo->ProcessName, &strTargetProcess1, TRUE) != 0  && RtlCompareUnicodeString(&processNameInfo->ProcessName, &strTargetProcess2, TRUE) != 0)
+    if (RtlCompareUnicodeString(&processNameInfo->ProcessName, &strTargetProcess1, TRUE) != 0 && RtlCompareUnicodeString(&processNameInfo->ProcessName, &strTargetProcess2, TRUE) != 0)
     {
       LOG(("[IM] Not our process name, do nothing\n"));
       __leave;
@@ -154,12 +154,12 @@ IMPostCreate(
       LOG(("[IM] Restricted dll\n"));
       __leave;
     }
-    
+
     // we only accept windows root folder and target process root folder
     if (!IMIsStartWithString(&fileNameInfo->Name, &strAllowedDir1) && !IMIsStartWithString(&fileNameInfo->Name, &processNameInfo->ParentDir)) // CHECK THIS
     {
       isBlocked = TRUE;
-       LOG(("[IM] Restricted dll path\n"));
+      LOG(("[IM] Restricted dll path\n"));
       __leave;
     }
   }

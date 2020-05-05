@@ -116,8 +116,7 @@ typedef HRESULT (*IM_RECORD_CALLBACK)(PIM_RECORD Record);
 _Check_return_
     IM_API
     IMInitilize(
-        _In_ IM_RECORD_CALLBACK Callback,
-        _Out_ HANDLE *ShutDown);
+        _In_ IM_RECORD_CALLBACK Callback);
 
 _Check_return_
     IM_API

@@ -449,6 +449,6 @@ _Check_return_
   NT_IF_FAIL_RETURN(IMCopyUnicodeStringEx(Ending, String, i, String->Length - i));
 
   LOG(("[IM] String splitted\n"));
-  
+
   return status;
 }

@@ -176,7 +176,7 @@ _Check_return_
       LOG(("[IM] Library initialized\n"));
     }
   }
-  
+
   return hResult;
 }
 
@@ -213,7 +213,6 @@ _Check_return_
   if (E_ACCESSDENIED == hResult)
   {
     printf("[IM] You must run as administrator, failed to establish kernel connection\n");
-    
   }
 
   if (FAILED(hResult))

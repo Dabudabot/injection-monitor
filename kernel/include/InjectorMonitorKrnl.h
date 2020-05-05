@@ -40,7 +40,7 @@ typedef struct _IM_KRECORD_DATA
 {
   ULONG Size; // zero size in case if data was not retrieved
   PVOID Buffer;
-} IM_KRECORD_DATA, *PIM_KRECORD_DATA; 
+} IM_KRECORD_DATA, *PIM_KRECORD_DATA;
 
 //
 //  What information we actually log.
