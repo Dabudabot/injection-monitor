@@ -31,11 +31,11 @@ User mode
 #else // DBG
 #define LOG(Data) \
     {             \
-        NOTHING;  \
+          \
     }
 #define LOG_B(Data) \
     {               \
-        NOTHING;    \
+            \
     }
 #endif // DBG
 
