@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Win7 Debug|x64">
@@ -34,7 +34,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <PropertyGroup>
-    <OutDir>$(ProjectDir)..\..\build\$(ConfigurationName)\$(PlatformName)\drv\</OutDir>
+    <OutDir>$(ProjectDir)..\..\build\$(PlatformName)\drv\</OutDir>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Win7 Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
@@ -45,11 +45,11 @@
   <ItemGroup Label="WrappedTaskItems" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win7 Release|x64'">
     <TargetName>imdrv</TargetName>
-	<IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\$(ConfigurationName)\</IntDir>
+    <IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win7 Debug|x64'">
     <TargetName>imdrv</TargetName>
-	<IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\$(ConfigurationName)\</IntDir>
+    <IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win7 Release|x64'">
     <Link>
@@ -96,8 +96,13 @@
     </Midl>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="im_comm.c" />
     <ClCompile Include="im_drv.c" />
+    <ClCompile Include="im_ops.c" />
+    <ClCompile Include="im_rec.c" />
     <ClCompile Include="im_reg.c" />
+    <ClCompile Include="im_req.c" />
+    <ClCompile Include="im_utils.c" />
     <ResourceCompile Include="im.rc" />
   </ItemGroup>
   <ItemGroup>
@@ -111,6 +116,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Exclude="@(ClInclude)" Include="*.h;*.hpp;*.hxx;*.hm;*.inl;*.xsd" />
+    <ClInclude Include="..\include\InjectorMonitorKrnl.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

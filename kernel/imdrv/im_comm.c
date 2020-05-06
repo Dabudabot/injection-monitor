@@ -379,7 +379,6 @@ _Check_return_
         _In_ ULONG OutputBufferSize,
         _Out_ PULONG ReturnOutputBufferLength)
 {
-  NTSTATUS status = STATUS_SUCCESS;
   PLIST_ENTRY currentEntry;
   KIRQL oldIrql;
   PCHAR buffer = OutputBuffer;
@@ -446,7 +445,7 @@ _Check_return_
     IMFreeRecord(recordList);
 
     InterlockedDecrement64(&RecordHead->RecordsPushed);
-    ASSERT(RecordHead->RecordsAllocated >= 0); // todo sometimes it decs earlier than incs
+	ASSERT(RecordHead->RecordsPushed >= 0); // todo sometimes it decs earlier than incs
 
     KeAcquireSpinLock(listLock, &oldIrql);
   }

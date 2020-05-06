@@ -27,6 +27,18 @@ Kernel mode
 #include "im_utils.h"
 #include "im_rec.h"
 
+//------------------------------------------------------------------------
+//  Local function prototypes.
+//------------------------------------------------------------------------
+
+static _Check_return_
+NTSTATUS
+IMInitializeGlobals(
+_In_ PDRIVER_OBJECT DriverObject);
+
+static VOID
+IMDeinitializeGlobals();
+
 //---------------------------------------------------------------------------
 //  Assign text sections for each routine.
 //---------------------------------------------------------------------------
@@ -47,18 +59,6 @@ Kernel mode
 //
 
 IM_GLOBALS Globals;
-
-//------------------------------------------------------------------------
-//  Local function prototypes.
-//------------------------------------------------------------------------
-
-static _Check_return_
-    NTSTATUS
-    IMInitializeGlobals(
-        _In_ PDRIVER_OBJECT DriverObject);
-
-static VOID
-IMDeinitializeGlobals();
 
 //---------------------------------------------------------------------------
 //  Main driver routines

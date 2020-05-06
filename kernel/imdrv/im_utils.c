@@ -23,6 +23,7 @@ Kernel mode
 //------------------------------------------------------------------------
 
 #include "im_utils.h"
+#include "ntstrsafe.h"
 
 //------------------------------------------------------------------------
 //  Text sections.
@@ -296,11 +297,11 @@ _Check_return_
   IF_FALSE_RETURN_RESULT(SourceString->Buffer != NULL, STATUS_INVALID_PARAMETER_2);
   IF_FALSE_RETURN_RESULT(NT_SUCCESS(RtlUnicodeStringValidate(SourceString)), STATUS_INVALID_PARAMETER_2);
 
-  NT_IF_FAIL_RETURN(IMAllocateUnicodeString(DestinationString, Length + sizeof(WCHAR)));
+  NT_IF_FAIL_RETURN(IMAllocateUnicodeString(DestinationString, (USHORT) Length + sizeof(WCHAR)));
 
   RtlCopyMemory(DestinationString->Buffer, (SourceString->Buffer + Start), Length * sizeof(WCHAR));
   RtlZeroMemory(DestinationString->Buffer + Length, sizeof(WCHAR)); // '\0'
-  DestinationString->Length = Length;
+  DestinationString->Length = (USHORT) Length;
 
   LOG(("[IM] String to string copied partially\n"));
 
@@ -317,13 +318,13 @@ IMIsContainsString(
 
   PAGED_CODE();
 
-  IF_FALSE_RETURN_RESULT(String != NULL, STATUS_INVALID_PARAMETER_1);
-  IF_FALSE_RETURN_RESULT(String->Buffer != NULL, STATUS_INVALID_PARAMETER_1);
-  IF_FALSE_RETURN_RESULT(String->Length != 0, STATUS_INVALID_PARAMETER_1);
+  IF_FALSE_RETURN_RESULT(String != NULL, FALSE);
+  IF_FALSE_RETURN_RESULT(String->Buffer != NULL, FALSE);
+  IF_FALSE_RETURN_RESULT(String->Length != 0, FALSE);
 
-  IF_FALSE_RETURN_RESULT(SubString != NULL, STATUS_INVALID_PARAMETER_1);
-  IF_FALSE_RETURN_RESULT(SubString->Buffer != NULL, STATUS_INVALID_PARAMETER_1);
-  IF_FALSE_RETURN_RESULT(SubString->Length != 0, STATUS_INVALID_PARAMETER_1);
+  IF_FALSE_RETURN_RESULT(SubString != NULL, FALSE);
+  IF_FALSE_RETURN_RESULT(SubString->Buffer != NULL, FALSE);
+  IF_FALSE_RETURN_RESULT(SubString->Length != 0, FALSE);
 
   for (; i < String->Length; i++)
   {
@@ -357,13 +358,13 @@ IMIsStartWithString(
 
   PAGED_CODE();
 
-  IF_FALSE_RETURN_RESULT(String != NULL, STATUS_INVALID_PARAMETER_1);
-  IF_FALSE_RETURN_RESULT(String->Buffer != NULL, STATUS_INVALID_PARAMETER_1);
-  IF_FALSE_RETURN_RESULT(String->Length != 0, STATUS_INVALID_PARAMETER_1);
+  IF_FALSE_RETURN_RESULT(String != NULL, FALSE);
+  IF_FALSE_RETURN_RESULT(String->Buffer != NULL, FALSE);
+  IF_FALSE_RETURN_RESULT(String->Length != 0, FALSE);
 
-  IF_FALSE_RETURN_RESULT(SubString != NULL, STATUS_INVALID_PARAMETER_1);
-  IF_FALSE_RETURN_RESULT(SubString->Buffer != NULL, STATUS_INVALID_PARAMETER_1);
-  IF_FALSE_RETURN_RESULT(SubString->Length != 0, STATUS_INVALID_PARAMETER_1);
+  IF_FALSE_RETURN_RESULT(SubString != NULL, FALSE);
+  IF_FALSE_RETURN_RESULT(SubString->Buffer != NULL, FALSE);
+  IF_FALSE_RETURN_RESULT(SubString->Length != 0, FALSE);
 
   for (; i < String->Length; i++)
   {
@@ -391,8 +392,8 @@ _Check_return_
     NTSTATUS
     IMSplitString(
         _In_ PUNICODE_STRING String,
-        _Outptr_ PUNICODE_STRING Beginning,
-        _Outptr_ PUNICODE_STRING Ending,
+        _Out_ PUNICODE_STRING Beginning,
+        _Out_ PUNICODE_STRING Ending,
         _In_ WCHAR Delimeter,
         _In_ LONG Occurrence)
 {

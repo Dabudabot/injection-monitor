@@ -101,7 +101,7 @@ _Check_return_
     NTSTATUS
     IMSplitString(
         _In_ PUNICODE_STRING String,
-        _Outptr_ PUNICODE_STRING *Beginning,
-        _Outptr_ PUNICODE_STRING *Ending,
+        _Out_ PUNICODE_STRING Beginning,
+        _Out_ PUNICODE_STRING Ending,
         _In_ WCHAR Delimeter,
         _In_ LONG Occurrence);

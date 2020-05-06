@@ -7,3 +7,4 @@
 *.vscode
 *c_cpp_properties.json
 run.cmd
+deploy.cmd

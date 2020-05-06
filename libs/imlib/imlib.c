@@ -27,6 +27,7 @@ User mode
 #include "imlib_macro.h"
 #include "InjectorMonitorKrnl.h"
 #include "fltUser.h"
+#include "stdlib.h"
 
 //------------------------------------------------------------------------
 //  Definitions.
@@ -117,6 +118,15 @@ _Check_return_
         PCHAR *SourceRecord,
         PIM_RECORD *TargetRecord,
         PULONG Pointer);
+
+_Check_return_
+HRESULT
+IMSend(
+HANDLE Port,
+ULONG Command,
+_Inout_ PCHAR Buffer,
+_In_ ULONG BufferSize,
+_Inout_ PULONG ReturnLen);
 
 VOID IMFreeRecord(PIM_RECORD Record);
 
@@ -250,7 +260,7 @@ _Check_return_
 VOID IMDeinitContext(
     _In_ PIM_CONTEXT Context)
 {
-  IF_FALSE_RETURN_RESULT(Context != NULL, E_INVALIDARG);
+  IF_FALSE_RETURN(Context != NULL);
 
   LOG(("[IM] Waiting to kill requester thread\n"));
 
@@ -407,7 +417,7 @@ IMRetrieveRecords(
 
       if (IS_ERROR(hResult))
       {
-        LOG_B("[IM] error move record\n");
+        LOG_B(("[IM] error move record\n"));
         continue;
       }
 

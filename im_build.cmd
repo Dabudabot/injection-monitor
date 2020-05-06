@@ -17,12 +17,23 @@ REM copy to the share all what we need to test
 call "C:\Program Files (x86)\VMware\VMware VIX\vmrun.exe" revertToSnapshot %MACHINE% %SNAPSHOT%
 call "C:\Program Files (x86)\VMware\VMware VIX\vmrun.exe" start %MACHINE%
 
-copy /Y "build\Debug\x64\drv\imdrv.inf" %SHARE_FOLDER%
-copy /Y "build\Debug\x64\drv\imdrv.sys" %SHARE_FOLDER%
-copy /Y "build\Debug\x64\drv\imdrv.pdb" %SHARE_FOLDER%
+copy /Y "build\x64\drv\imdrv.inf" %SHARE_FOLDER%
+copy /Y "build\x64\drv\imdrv.sys" %SHARE_FOLDER%
+copy /Y "build\x64\drv\imdrv.pdb" %SHARE_FOLDER%
 
-copy /Y "build\Debug\x64\exe\imapp.exe" %SHARE_FOLDER%
-copy /Y "build\Debug\x64\exe\imapp.pdb" %SHARE_FOLDER%
+copy /Y "build\x64\exe\imapp.exe" %SHARE_FOLDER%
+copy /Y "build\x64\exe\imapp.pdb" %SHARE_FOLDER%
+
+copy /Y "build\x64\exe\hl.exe" %SHARE_FOLDER%
+copy /Y "build\x64\exe\hl.pdb" %SHARE_FOLDER%
+
+copy /Y "build\x64\lib\testlib0.dll" %SHARE_FOLDER%
+copy /Y "build\x64\lib\testlib0.pdb" %SHARE_FOLDER%
+copy /Y "build\x64\lib\testlib1.dll" %SHARE_FOLDER%
+copy /Y "build\x64\lib\testlib1.pdb" %SHARE_FOLDER%
+
+copy /Y "im_deploy.cmd" %SHARE_FOLDER%
+copy /Y "tests\scripts\test_deploy.cmd" %SHARE_FOLDER%
 
 echo *
 echo ********************************************

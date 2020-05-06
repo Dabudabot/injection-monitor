@@ -151,9 +151,10 @@ _Check_return_
         _Inout_ PFLT_CALLBACK_DATA Data,
         _Outptr_ PIM_PROCESS_NAME_INFORMATION *NameInformation)
 {
+  UNREFERENCED_PARAMETER(Data);
+
   NTSTATUS status = STATUS_SUCCESS;
   ULONG returnedLength = 0;
-  ULONG bufferLength = 0;
   HANDLE hProcess = NULL;
   PVOID buffer = NULL;
   PEPROCESS eProcess = NULL;

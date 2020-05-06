@@ -67,7 +67,7 @@ _Check_return_
   {
     RecordHead->MaxRecordsToPush = IM_DEFAULT_MAX_RECORDS;
     RecordHead->RecordsPushed = 0;
-    RecordHead->RecordStructSize = Size;
+    RecordHead->RecordStructSize = (ULONG) Size;
     NT_IF_FAIL_LEAVE(IMAllocateNonPagedBuffer(&RecordHead->OutputRecordEvent, sizeof(KEVENT)));
 
     KeInitializeEvent(
@@ -149,7 +149,7 @@ VOID IMPush(
   IF_FALSE_RETURN(ListEntry != NULL);
   IF_FALSE_RETURN(RecordsHead != NULL);
 
-  ARPushToList(
+  IMPushToList(
       &RecordsHead->RecordListLock,
       &RecordsHead->RecordList,
       ListEntry,

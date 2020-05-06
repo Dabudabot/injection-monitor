@@ -14,4 +14,120 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="im_drv.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="im_reg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="im_comm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="im_ops.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="im_rec.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="im_req.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="im_utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="..\include\InjectorMonitorKrnl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="im.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Inf Include="*.inf" />
+  </ItemGroup>
 </Project>

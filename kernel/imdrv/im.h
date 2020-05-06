@@ -25,7 +25,6 @@ Kernel mode
 
 #include "fltKernel.h"
 #include "InjectorMonitorKrnl.h"
-#include "im_rec.h"
 #include "im_macro.h"
 
 //------------------------------------------------------------------------
@@ -41,6 +40,43 @@ Kernel mode
 //------------------------------------------------------------------------
 //  Structures.
 //------------------------------------------------------------------------
+
+//
+// Record List head in globals
+//
+typedef struct _IM_KRECORD_HEAD
+{
+	//
+	// size of IM_KRECORD struct
+	//
+	ULONG RecordStructSize;
+
+	//
+	//  List of records with data to send to user mode.
+	//
+	LIST_ENTRY RecordList;
+
+	//
+	//  Protection for the list of records
+	//
+	KSPIN_LOCK RecordListLock;
+
+	//
+	// pushing record event
+	//
+	PKEVENT OutputRecordEvent;
+
+	//
+	//  Maximum amount of records we could keep in memory
+	//
+	LONG MaxRecordsToPush;
+
+	//
+	//  Current amount of records we keep in memory
+	//
+	__volatile LONGLONG RecordsPushed;
+
+} IM_KRECORD_HEAD, *PIM_KRECORD_HEAD;
 
 //
 // Global driver data structure

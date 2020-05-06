@@ -20,6 +20,7 @@ User mode
 #include "InjectorMonitor.h"
 #include "Windows.h"
 #include "stdio.h"
+#include "stdlib.h"
 
 HRESULT
 RecordCallback(

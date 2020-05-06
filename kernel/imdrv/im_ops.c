@@ -24,13 +24,14 @@ Kernel mode
 #include "im_ops.h"
 #include "im_req.h"
 #include "im_utils.h"
+#include "im_rec.h"
 
 //------------------------------------------------------------------------
 //  Defines.
 //------------------------------------------------------------------------
 
-#define IM_TARGET_PROCESS_NAME_1 "hl.exe"   // todo consider to not to hardcode it.
-#define IM_TARGET_PROCESS_NAME_2 "csgo.exe" // todo consider to not to hardcode it.
+#define IM_TARGET_PROCESS_NAME_1 L"hl.exe"   // todo consider to not to hardcode it.
+#define IM_TARGET_PROCESS_NAME_2 L"csgo.exe" // todo consider to not to hardcode it.
 
 #define IM_ALLOWED_EXTENTION L"dll"
 
@@ -99,7 +100,6 @@ IMPostCreate(
   PFLT_FILE_NAME_INFORMATION fileNameInfo = NULL;
   PIM_PROCESS_NAME_INFORMATION processNameInfo = NULL;
 
-  BOOLEAN isRecordCreate = FALSE;
   BOOLEAN isBlocked = FALSE;
 
   UNICODE_STRING strTargetProcess1 = CONSTANT_STRING(IM_TARGET_PROCESS_NAME_1);

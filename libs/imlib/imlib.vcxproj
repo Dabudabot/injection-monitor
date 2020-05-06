@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -15,6 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\InjectorMonitor.h" />
+    <ClInclude Include="imlib_macro.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -51,15 +52,15 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>ardriver</TargetName>
-    <OutDir>$(ProjectDir)..\..\build\$(ConfigurationName)\$(PlatformName)\lib\</OutDir>
-    <IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\$(ConfigurationName)\</IntDir>
+    <TargetName>imlib</TargetName>
+    <OutDir>$(ProjectDir)..\..\build\$(PlatformName)\lib\</OutDir>
+    <IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>ardriver</TargetName>
-    <OutDir>$(ProjectDir)..\..\build\$(ConfigurationName)\$(PlatformName)\lib\</OutDir>
-    <IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\$(ConfigurationName)\</IntDir>
+    <TargetName>imlib</TargetName>
+    <OutDir>$(ProjectDir)..\..\build\$(PlatformName)\lib\</OutDir>
+    <IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -69,7 +70,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(WDKContentRoot)\Include\km;$(ProjectDir)..\..\kernel\win\include;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(WDKContentRoot)\Include\km;$(ProjectDir)..\..\kernel\include;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -91,7 +92,7 @@
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(WDKContentRoot)\Include\km;$(ProjectDir)..\..\kernel\win\include;$(ProjectDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(WDKContentRoot)\Include\km;$(ProjectDir)..\..\kernel\include;$(ProjectDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
