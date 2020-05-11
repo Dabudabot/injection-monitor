@@ -25,13 +25,24 @@ Kernel mode
 #include "im_utils.h"
 
 //------------------------------------------------------------------------
+//  Local functions.
+//------------------------------------------------------------------------
+
+_Check_return_
+    NTSTATUS
+    IMSplitNameInformation(
+        _In_ PUNICODE_STRING FullName,
+        _Outptr_ PIM_NAME_INFORMATION *NameInformation);
+
+//------------------------------------------------------------------------
 //  Text sections.
 //------------------------------------------------------------------------
 
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text(PAGE, IMGetFileNameInformation)
 #pragma alloc_text(PAGE, IMGetProcessNameInformation)
-#pragma alloc_text(PAGE, IMReleaseProcessNameInformation)
+#pragma alloc_text(PAGE, IMReleaseNameInformation)
+#pragma alloc_text(PAGE, IMSplitNameInformation)
 #endif // ALLOC_PRAGMA
 
 //------------------------------------------------------------------------
@@ -53,7 +64,7 @@ _Check_return_
     NTSTATUS
     IMGetFileNameInformation(
         _Inout_ PFLT_CALLBACK_DATA Data,
-        _Outptr_ PFLT_FILE_NAME_INFORMATION *NameInformation)
+        _Outptr_ PIM_NAME_INFORMATION *NameInformation)
 /*++
 
 Summary:
@@ -77,7 +88,7 @@ Return value:
 --*/
 {
   NTSTATUS status = STATUS_SUCCESS;
-  PFLT_FILE_NAME_INFORMATION nameInfo = NULL;
+  PFLT_FILE_NAME_INFORMATION fileNameInfo = NULL;
 
   PAGED_CODE();
 
@@ -102,7 +113,7 @@ Return value:
       // FLT_FILE_NAME_QUERY_FILESYSTEM_ONLY when querying the filename
       // so that the filename as it appears below this filter does not end up
       // in filter manager's name cache.
-      status = FltGetFileNameInformation(Data, FLT_FILE_NAME_OPENED | FLT_FILE_NAME_QUERY_FILESYSTEM_ONLY | FLT_FILE_NAME_ALLOW_QUERY_ON_REPARSE, &nameInfo);
+      status = FltGetFileNameInformation(Data, FLT_FILE_NAME_OPENED | FLT_FILE_NAME_QUERY_FILESYSTEM_ONLY | FLT_FILE_NAME_ALLOW_QUERY_ON_REPARSE, &fileNameInfo);
 
       // Restore the SL_OPEN_TARGET_DIRECTORY flag so the create will proceed
       // for the target. The file systems depend on this flag being set in
@@ -117,27 +128,32 @@ Return value:
       // and fail without looking in the cache.
       // FLT_FILE_NAME_QUERY_ALWAYS_ALLOW_CACHE_LOOKUP always checks the cache,
       // and then queries the file system if its safe.
-      status = FltGetFileNameInformation(Data, FLT_FILE_NAME_OPENED | FLT_FILE_NAME_QUERY_ALWAYS_ALLOW_CACHE_LOOKUP | FLT_FILE_NAME_ALLOW_QUERY_ON_REPARSE, &nameInfo);
+      status = FltGetFileNameInformation(Data, FLT_FILE_NAME_OPENED | FLT_FILE_NAME_QUERY_ALWAYS_ALLOW_CACHE_LOOKUP | FLT_FILE_NAME_ALLOW_QUERY_ON_REPARSE, &fileNameInfo);
     }
 
     NT_IF_FAIL_LEAVE(status);
 
-    *NameInformation = nameInfo;
+    LOG(("[IM] file name information: %wZ\n", &fileNameInfo->Name));
+
+    NT_IF_FAIL_LEAVE(IMSplitNameInformation(&fileNameInfo->Name, NameInformation));
   }
   __finally
   {
-    if (!NT_SUCCESS(status))
+    if (NULL != fileNameInfo)
     {
-      LOG_B(("[IM] file name information failed\n"));
-      if (nameInfo != NULL)
-      {
-        FltReleaseFileNameInformation(nameInfo);
-        nameInfo = NULL;
-      }
+      FltReleaseFileNameInformation(fileNameInfo);
+      fileNameInfo = NULL;
+    }
+
+    if (NT_ERROR(status))
+    {
+      LOG_B(("[IM] Get file name information failed\n"));
+      IMReleaseNameInformation(*NameInformation);
+      (*NameInformation) = NULL;
     }
     else
     {
-      LOG(("[IM] file name information retrieved\n"));
+      LOG(("[IM] Got file with name %wZ\n", &(*NameInformation)->FullName));
     }
   }
 
@@ -149,7 +165,7 @@ _Check_return_
         NTSTATUS
     IMGetProcessNameInformation(
         _Inout_ PFLT_CALLBACK_DATA Data,
-        _Outptr_ PIM_PROCESS_NAME_INFORMATION *NameInformation)
+        _Outptr_ PIM_NAME_INFORMATION *NameInformation)
 {
   UNREFERENCED_PARAMETER(Data);
 
@@ -158,7 +174,6 @@ _Check_return_
   HANDLE hProcess = NULL;
   PVOID buffer = NULL;
   PEPROCESS eProcess = NULL;
-  PIM_PROCESS_NAME_INFORMATION nameInfo = NULL;
 
   PAGED_CODE();
 
@@ -199,11 +214,7 @@ _Check_return_
                                                returnedLength,
                                                &returnedLength));
 
-    NT_IF_FAIL_LEAVE(IMAllocateNonPagedBuffer(&nameInfo, sizeof(IM_PROCESS_NAME_INFORMATION)));
-
-    NT_IF_FAIL_LEAVE(IMCopyUnicodeString(&nameInfo->FullName, (PUNICODE_STRING)buffer));
-
-    NT_IF_FAIL_LEAVE(IMSplitString(&nameInfo->FullName, &nameInfo->ParentDir, &nameInfo->ProcessName, L'\\', -1));
+    NT_IF_FAIL_LEAVE(IMSplitNameInformation((PUNICODE_STRING)buffer, NameInformation));
   }
   __finally
   {
@@ -220,20 +231,20 @@ _Check_return_
     if (NT_ERROR(status))
     {
       LOG_B(("[IM] Get process name information failed\n"));
-      IMReleaseProcessNameInformation(nameInfo);
+      IMReleaseNameInformation(*NameInformation);
+      (*NameInformation) = NULL;
     }
     else
     {
-      LOG(("[IM] process name information retrieved\n"));
-      *NameInformation = nameInfo;
+      LOG(("[IM] Got process with name %wZ\n", &(*NameInformation)->FullName));
     }
   }
 
   return status;
 }
 
-VOID IMReleaseProcessNameInformation(
-    _In_ PIM_PROCESS_NAME_INFORMATION NameInformation)
+VOID IMReleaseNameInformation(
+    _In_ PIM_NAME_INFORMATION NameInformation)
 {
   PAGED_CODE();
 
@@ -243,16 +254,67 @@ VOID IMReleaseProcessNameInformation(
   {
     ExFreePool(NameInformation->ParentDir.Buffer);
   }
-  if (NULL != NameInformation->ProcessName.Buffer)
+  if (NULL != NameInformation->Name.Buffer)
   {
-    ExFreePool(NameInformation->ProcessName.Buffer);
+    ExFreePool(NameInformation->Name.Buffer);
   }
   if (NULL != NameInformation->FullName.Buffer)
   {
     ExFreePool(NameInformation->FullName.Buffer);
   }
+  if (NULL != NameInformation->Extension.Buffer)
+  {
+    ExFreePool(NameInformation->Extension.Buffer);
+  }
 
   ExFreePool(NameInformation);
 
-  LOG(("[IM] process name information released\n"));
+  LOG(("[IM] Name information released\n"));
+}
+
+_Check_return_
+    NTSTATUS
+    IMSplitNameInformation(
+        _In_ PUNICODE_STRING FullName,
+        _Outptr_ PIM_NAME_INFORMATION *NameInformation)
+{
+  NTSTATUS status = STATUS_SUCCESS;
+  PIM_NAME_INFORMATION nameInfo = NULL;
+
+  PAGED_CODE();
+
+  IF_FALSE_RETURN_RESULT(FullName != NULL, STATUS_INVALID_PARAMETER_1);
+  IF_FALSE_RETURN_RESULT(FullName->Buffer != NULL, STATUS_INVALID_PARAMETER_1);
+  IF_FALSE_RETURN_RESULT(FullName->Length != 0, STATUS_INVALID_PARAMETER_1);
+  IF_FALSE_RETURN_RESULT(NameInformation != NULL, STATUS_INVALID_PARAMETER_2);
+
+  *NameInformation = NULL;
+
+  LOG(("[IM] Splitting name information\n"));
+
+  __try
+  {
+    NT_IF_FAIL_LEAVE(IMAllocateNonPagedBuffer(&nameInfo, sizeof(IM_NAME_INFORMATION)));
+
+    NT_IF_FAIL_LEAVE(IMCopyUnicodeString(&nameInfo->FullName, FullName));
+
+    NT_IF_FAIL_LEAVE(IMSplitString(&nameInfo->FullName, &nameInfo->ParentDir, &nameInfo->Name, L'\\', -1));
+
+    NT_IF_FAIL_LEAVE(IMSplitString(&nameInfo->Name, NULL, &nameInfo->Extension, L'.', -1));
+  }
+  __finally
+  {
+    if (NT_ERROR(status))
+    {
+      LOG_B(("[IM] Split name information failed\n"));
+      IMReleaseNameInformation(nameInfo);
+    }
+    else
+    {
+      LOG(("[IM] Name splitted. ParentDir: %wZ, Name: %wZ, Ext: %wZ\n", &nameInfo->ParentDir, &nameInfo->Name, &nameInfo->Extension));
+      *NameInformation = nameInfo;
+    }
+  }
+
+  return status;
 }

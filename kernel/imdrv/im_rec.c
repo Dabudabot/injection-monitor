@@ -267,7 +267,7 @@ _Check_return_
     {
       newRecord->Record.SequenceNumber = InterlockedIncrement64(&Globals.LogSequenceNumber); // todo may overrun
       *RecordList = newRecord;
-      LOG(("[IM] Record created\n"));
+      LOG(("[IM] Record created with %wZ and %wZ\n", ProcessName, FileName));
     }
   }
 

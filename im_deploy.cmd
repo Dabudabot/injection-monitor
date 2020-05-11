@@ -2,6 +2,10 @@
 
 call rundll32 syssetup,SetupInfObjectInstallAction DefaultInstall 128 .\imdrv.inf
 
-REM TODO start driver
+sc start imdrv
 
-call imapp.exe
+start /wait imapp.exe
+
+sc stop imdrv
+
+sc delete imdrv

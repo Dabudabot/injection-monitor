@@ -252,7 +252,7 @@ IMMessage(
       return GetExceptionCode();
     }
 
-    LOG(("[IM] Got new message with command 0x%x\n", command));
+    //LOG(("[IM] Got new message with command 0x%x\n", command));
 
     if (command == GetRecordsCommand)
     {
@@ -336,7 +336,7 @@ IMMessage(
     LOG_B(("[IM] message processed with STATUS_INVALID_PARAMETER\n"));
   }
 
-  LOG(("[IM] Message processed with status 0x%x", status));
+  //LOG(("[IM] Message processed with status 0x%x\n", status));
   return status;
 }
 
@@ -396,7 +396,7 @@ _Check_return_
   IF_FALSE_RETURN_RESULT(OutputBufferSize != 0, STATUS_INVALID_PARAMETER_3);
   IF_FALSE_RETURN_RESULT(ReturnOutputBufferLength != NULL, STATUS_INVALID_PARAMETER_4);
 
-  LOG(("[IM] Records copy start\n"));
+  //LOG(("[IM] Records copy start\n"));
 
   KeAcquireSpinLock(listLock, &oldIrql);
 
@@ -462,7 +462,7 @@ _Check_return_
     return STATUS_SUCCESS;
   }
 
-  LOG(("[IM] No records were copied\n"));
+  //LOG(("[IM] No records were copied\n"));
 
   return STATUS_NO_MORE_ENTRIES;
 }

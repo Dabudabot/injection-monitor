@@ -238,7 +238,6 @@ _Check_return_
   IF_FALSE_RETURN_RESULT(String != NULL, STATUS_INVALID_PARAMETER_1);
   IF_FALSE_RETURN_RESULT(String->Buffer == NULL, STATUS_INVALID_PARAMETER_1);
   IF_FALSE_RETURN_RESULT(Size != 0, STATUS_INVALID_PARAMETER_2);
-  IF_FALSE_RETURN_RESULT(Size % sizeof(WCHAR) == 0, STATUS_INVALID_PARAMETER_2);
 
   NT_IF_FAIL_RETURN(IMAllocateNonPagedBuffer((PVOID *)&String->Buffer, Size));
 
@@ -297,11 +296,11 @@ _Check_return_
   IF_FALSE_RETURN_RESULT(SourceString->Buffer != NULL, STATUS_INVALID_PARAMETER_2);
   IF_FALSE_RETURN_RESULT(NT_SUCCESS(RtlUnicodeStringValidate(SourceString)), STATUS_INVALID_PARAMETER_2);
 
-  NT_IF_FAIL_RETURN(IMAllocateUnicodeString(DestinationString, (USHORT) Length + sizeof(WCHAR)));
+  NT_IF_FAIL_RETURN(IMAllocateUnicodeString(DestinationString, (USHORT) ((Length + 1) * sizeof(WCHAR))));
 
   RtlCopyMemory(DestinationString->Buffer, (SourceString->Buffer + Start), Length * sizeof(WCHAR));
   RtlZeroMemory(DestinationString->Buffer + Length, sizeof(WCHAR)); // '\0'
-  DestinationString->Length = (USHORT) Length;
+  DestinationString->Length = (USHORT) (Length * sizeof(WCHAR));
 
   LOG(("[IM] String to string copied partially\n"));
 
@@ -321,17 +320,19 @@ IMIsContainsString(
   IF_FALSE_RETURN_RESULT(String != NULL, FALSE);
   IF_FALSE_RETURN_RESULT(String->Buffer != NULL, FALSE);
   IF_FALSE_RETURN_RESULT(String->Length != 0, FALSE);
+  IF_FALSE_RETURN_RESULT(String->Length % sizeof(WCHAR) == 0, FALSE);
 
   IF_FALSE_RETURN_RESULT(SubString != NULL, FALSE);
   IF_FALSE_RETURN_RESULT(SubString->Buffer != NULL, FALSE);
   IF_FALSE_RETURN_RESULT(SubString->Length != 0, FALSE);
+  IF_FALSE_RETURN_RESULT(SubString->Length % sizeof(WCHAR) == 0, FALSE);
 
-  for (; i < String->Length; i++)
+  for (; i < String->Length / sizeof(WCHAR); i++)
   {
     if (String->Buffer[i] == SubString->Buffer[j])
     {
       j++;
-      if (SubString->Length == j)
+      if (SubString->Length / sizeof(WCHAR) == j)
       {
         LOG(("[IM] String contains string\n"));
         return TRUE;
@@ -361,17 +362,19 @@ IMIsStartWithString(
   IF_FALSE_RETURN_RESULT(String != NULL, FALSE);
   IF_FALSE_RETURN_RESULT(String->Buffer != NULL, FALSE);
   IF_FALSE_RETURN_RESULT(String->Length != 0, FALSE);
+  IF_FALSE_RETURN_RESULT(String->Length % sizeof(WCHAR) == 0, FALSE);
 
   IF_FALSE_RETURN_RESULT(SubString != NULL, FALSE);
   IF_FALSE_RETURN_RESULT(SubString->Buffer != NULL, FALSE);
   IF_FALSE_RETURN_RESULT(SubString->Length != 0, FALSE);
+  IF_FALSE_RETURN_RESULT(SubString->Length % sizeof(WCHAR) == 0, FALSE);
 
-  for (; i < String->Length; i++)
+  for (; i < String->Length / sizeof(WCHAR); i++)
   {
     if (String->Buffer[i] == SubString->Buffer[j])
     {
       j++;
-      if (SubString->Length == j)
+      if (SubString->Length / sizeof(WCHAR) == j)
       {
         LOG(("[IM] String starts with string\n"));
         return TRUE;
@@ -392,8 +395,8 @@ _Check_return_
     NTSTATUS
     IMSplitString(
         _In_ PUNICODE_STRING String,
-        _Out_ PUNICODE_STRING Beginning,
-        _Out_ PUNICODE_STRING Ending,
+        _Out_opt_ PUNICODE_STRING Beginning,
+        _Out_opt_ PUNICODE_STRING Ending,
         _In_ WCHAR Delimeter,
         _In_ LONG Occurrence)
 {
@@ -407,18 +410,43 @@ _Check_return_
   IF_FALSE_RETURN_RESULT(String != NULL, STATUS_INVALID_PARAMETER_1);
   IF_FALSE_RETURN_RESULT(String->Buffer != NULL, STATUS_INVALID_PARAMETER_1);
   IF_FALSE_RETURN_RESULT(String->Length != 0, STATUS_INVALID_PARAMETER_1);
-  IF_FALSE_RETURN_RESULT(Beginning != NULL, STATUS_INVALID_PARAMETER_2);
-  IF_FALSE_RETURN_RESULT(Beginning->Buffer == NULL, STATUS_INVALID_PARAMETER_2);
-  IF_FALSE_RETURN_RESULT(Beginning->Length == 0, STATUS_INVALID_PARAMETER_2);
-  IF_FALSE_RETURN_RESULT(Ending != NULL, STATUS_INVALID_PARAMETER_3);
-  IF_FALSE_RETURN_RESULT(Ending->Buffer == NULL, STATUS_INVALID_PARAMETER_3);
-  IF_FALSE_RETURN_RESULT(Ending->Length == 0, STATUS_INVALID_PARAMETER_3);
+  FLT_ASSERT(String->Length % sizeof(WCHAR) == 0);
+
+  if (Beginning == NULL && Ending == NULL)
+  {
+    return STATUS_INVALID_PARAMETER;
+  }
+
+  if (Ending == NULL)
+  {
+    IF_FALSE_RETURN_RESULT(Beginning != NULL, STATUS_INVALID_PARAMETER_2);
+    IF_FALSE_RETURN_RESULT(Beginning->Buffer == NULL, STATUS_INVALID_PARAMETER_2);
+    IF_FALSE_RETURN_RESULT(Beginning->Length == 0, STATUS_INVALID_PARAMETER_2);
+  }
+  else
+  {
+    IF_FALSE_RETURN_RESULT(Ending->Buffer == NULL, STATUS_INVALID_PARAMETER_3);
+    IF_FALSE_RETURN_RESULT(Ending->Length == 0, STATUS_INVALID_PARAMETER_3);
+  }
+  
+  if (Beginning == NULL)
+  {
+    IF_FALSE_RETURN_RESULT(Ending != NULL, STATUS_INVALID_PARAMETER_3);
+    IF_FALSE_RETURN_RESULT(Ending->Buffer == NULL, STATUS_INVALID_PARAMETER_3);
+    IF_FALSE_RETURN_RESULT(Ending->Length == 0, STATUS_INVALID_PARAMETER_3);
+  }
+  else
+  {
+    IF_FALSE_RETURN_RESULT(Beginning->Buffer == NULL, STATUS_INVALID_PARAMETER_2);
+    IF_FALSE_RETURN_RESULT(Beginning->Length == 0, STATUS_INVALID_PARAMETER_2);
+  }
+  
 
   LOG(("[IM] String splitting started\n"));
 
   if (Occurrence < 0)
   {
-    i = String->Length - 1;
+    i = (String->Length / sizeof(WCHAR)) - 1;
     end = 0;
     step = -1;
     Occurrence *= (-1);
@@ -426,7 +454,7 @@ _Check_return_
   else
   {
     i = 0;
-    end = String->Length - 1;
+    end = (String->Length / sizeof(WCHAR)) - 1;
     step = 1;
   }
 
@@ -444,11 +472,16 @@ _Check_return_
   }
 
   // now i is the first symbol of the ending string
+  if (Beginning != NULL)
+  {
+    NT_IF_FAIL_RETURN(IMCopyUnicodeStringEx(Beginning, String, 0, i));
+  }
 
-  NT_IF_FAIL_RETURN(IMCopyUnicodeStringEx(Beginning, String, 0, i));
-
-  NT_IF_FAIL_RETURN(IMCopyUnicodeStringEx(Ending, String, i, String->Length - i));
-
+  if (Ending != NULL)
+  {
+    NT_IF_FAIL_RETURN(IMCopyUnicodeStringEx(Ending, String, i, (String->Length / sizeof(WCHAR)) - i));
+  }
+  
   LOG(("[IM] String splitted\n"));
 
   return status;

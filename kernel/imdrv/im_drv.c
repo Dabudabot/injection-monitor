@@ -32,9 +32,9 @@ Kernel mode
 //------------------------------------------------------------------------
 
 static _Check_return_
-NTSTATUS
-IMInitializeGlobals(
-_In_ PDRIVER_OBJECT DriverObject);
+    NTSTATUS
+    IMInitializeGlobals(
+        _In_ PDRIVER_OBJECT DriverObject);
 
 static VOID
 IMDeinitializeGlobals();
@@ -186,6 +186,8 @@ Always success
   {
     FltUnregisterFilter(Globals.Filter);
   }
+
+  IMFreeList(&Globals.RecordHead.RecordListLock, &Globals.RecordHead.RecordList);
 
   IMDeinitializeGlobals();
 

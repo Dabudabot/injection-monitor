@@ -23,7 +23,7 @@ Kernel mode
 //  Debug macroses.
 //------------------------------------------------------------------------
 
-#if DBG
+#if DBG0
 #define LOG(Data) DbgPrint Data;
 #define LOG_B(Data) \
     DbgPrint Data;  \

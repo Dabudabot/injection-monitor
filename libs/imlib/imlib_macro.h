@@ -29,7 +29,7 @@ User mode
 //  Debug macroses.
 //------------------------------------------------------------------------
 
-#if DBG
+#if DBG0
 #define LOG(Data) printf Data;
 #define LOG_B(Data) \
     printf Data;    \

@@ -96,4 +96,4 @@ DiskId1                 = "imdrv Device Installation Disk"
 DefaultInstance         = "imdrv - Middle Instance"
 Instance1.Name          = "imdrv - Middle Instance"
 Instance1.Altitude      = "370000"
-Instance1.Flags         = 0x1          ; Suppress automatic attachments
+Instance1.Flags         = 0x0          ; Automatic attachments

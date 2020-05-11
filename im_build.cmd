@@ -8,7 +8,7 @@ set MACHINE=%1%
 set SNAPSHOT=%2%
 set SHARE_FOLDER=%3%
 
-call msbuildex.cmd "kernel\imdrv" imdrv debug x64 "libs/imlib" imlib debug x64 "client\imapp" imapp debug x64 "tests\testlib0" testlib0 debug x64 "tests\testlib1" testlib1 debug x64 "tests\testapp" testapp debug x64
+call msbuildex.cmd "kernel\imdrv" imdrv Debug x64 "libs/imlib" imlib debug x64 "client\imapp" imapp debug x64 "tests\testdll0" testdll0 debug x64 "tests\testapp0" testapp0 debug x64
 
 if errorlevel 1 goto :fail
 
@@ -27,11 +27,10 @@ copy /Y "build\x64\exe\imapp.pdb" %SHARE_FOLDER%
 copy /Y "build\x64\exe\hl.exe" %SHARE_FOLDER%
 copy /Y "build\x64\exe\hl.pdb" %SHARE_FOLDER%
 
-copy /Y "build\x64\lib\testlib0.dll" %SHARE_FOLDER%
-copy /Y "build\x64\lib\testlib0.pdb" %SHARE_FOLDER%
-copy /Y "build\x64\lib\testlib1.dll" %SHARE_FOLDER%
-copy /Y "build\x64\lib\testlib1.pdb" %SHARE_FOLDER%
+copy /Y "build\x64\lib\testdll0.dll" %SHARE_FOLDER%
+copy /Y "build\x64\lib\testdll0.pdb" %SHARE_FOLDER%
 
+copy /Y "deploy.cmd" %SHARE_FOLDER%
 copy /Y "im_deploy.cmd" %SHARE_FOLDER%
 copy /Y "tests\scripts\test_deploy.cmd" %SHARE_FOLDER%
 

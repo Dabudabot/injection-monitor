@@ -382,7 +382,7 @@ IMRetrieveRecords(
 
     if (HRESULT_FROM_WIN32(ERROR_NO_MORE_ITEMS) == hResult)
     {
-      LOG(("  [IM] No items from kernel\n"));
+      //LOG(("  [IM] No items from kernel\n"));
       Sleep(200);
       continue;
     }
@@ -451,7 +451,7 @@ IMSend(
   IF_FALSE_RETURN_RESULT(Buffer != 0, E_INVALIDARG);
   IF_FALSE_RETURN_RESULT(ReturnLen != NULL, E_INVALIDARG);
 
-  LOG(("[IM] Sending message to kernel component 0x%x\n", Command));
+  //LOG(("[IM] Sending message to kernel component 0x%x\n", Command));
 
   command.Command = (IM_INTERFACE_COMMAND)Command;
 
@@ -463,7 +463,7 @@ IMSend(
       BufferSize,
       ReturnLen);
 
-  LOG(("[IM] Kernel respond 0x%x\n", hResult));
+  //LOG(("[IM] Kernel respond 0x%x\n", hResult));
 
   return hResult;
 }

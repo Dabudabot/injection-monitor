@@ -26,7 +26,7 @@ HRESULT
 RecordCallback(
     PIM_RECORD Record)
 {
-  printf("0x%x - Process: %s Library: %s Blocked: %d Success: %d\n", Record->SequenceNumber, Record->ProcessName, Record->FileName, Record->IsBlocked, Record->IsSucceded);
+  wprintf(L"\n0x%x: \n  Process: %ls\n  Library: %ls\n  Blocked: %d Success: %d\n", Record->SequenceNumber, Record->ProcessName, Record->FileName, Record->IsBlocked, Record->IsSucceded);
   return S_OK;
 }
 
@@ -40,7 +40,7 @@ int _cdecl main(
 
   if (FAILED(hResult))
   {
-    printf("Failed to initialize im lib\n");
+    wprintf(L"Failed to initialize im lib\n");
     return 1;
   }
 
@@ -50,7 +50,7 @@ int _cdecl main(
 
   if (FAILED(hResult))
   {
-    printf("Failed to deinitialize im lib\n");
+    wprintf(L"Failed to deinitialize im lib\n");
     return 1;
   }
 

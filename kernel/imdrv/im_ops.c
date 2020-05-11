@@ -35,9 +35,9 @@ Kernel mode
 
 #define IM_ALLOWED_EXTENTION L"dll"
 
-#define IM_RESTRICTED_FILE L"Steam\\crashhandler.dll"
+#define IM_RESTRICTED_FILE L"Steam\\crashhandler.dll" //consider to not to hardcode it
 
-#define IM_ALLOWED_DIR_1 L"\\Windows\\"
+#define IM_ALLOWED_DIR_1 L"\\Device\\HarddiskVolume3\\Windows\\" // todo look for right device harddisk
 
 //------------------------------------------------------------------------
 //  Text sections.
@@ -72,8 +72,6 @@ IMPreCreate(
   FLT_ASSERT(Data->Iopb != NULL);
   FLT_ASSERT(Data->Iopb->MajorFunction == IRP_MJ_CREATE);
 
-  DbgBreakPoint();
-
   desiredAccess = Data->Iopb->Parameters.Create.SecurityContext->DesiredAccess;
 
   if (FlagOn(desiredAccess, FILE_EXECUTE)) // CHECK THIS
@@ -97,8 +95,8 @@ IMPostCreate(
   NTSTATUS status = STATUS_SUCCESS;
   PIM_KRECORD_LIST recordList = NULL;
 
-  PFLT_FILE_NAME_INFORMATION fileNameInfo = NULL;
-  PIM_PROCESS_NAME_INFORMATION processNameInfo = NULL;
+  PIM_NAME_INFORMATION processNameInfo = NULL;
+  PIM_NAME_INFORMATION fileNameInfo = NULL;
 
   BOOLEAN isBlocked = FALSE;
 
@@ -109,6 +107,8 @@ IMPostCreate(
   UNICODE_STRING strAllowedDir1 = CONSTANT_STRING(IM_ALLOWED_DIR_1);
 
   PAGED_CODE();
+
+  //DbgBreakPoint();
 
   UNREFERENCED_PARAMETER(Flags);
   UNREFERENCED_PARAMETER(CompletionContext);
@@ -123,12 +123,12 @@ IMPostCreate(
   __try
   {
     // first we have to get our process name information
-    NT_IF_FAIL_LEAVE(IMGetProcessNameInformation(Data, &processNameInfo)); // CHECK THIS
+    NT_IF_FAIL_LEAVE(IMGetProcessNameInformation(Data, &processNameInfo));
 
     // we are looking only for specific process names
-    if (RtlCompareUnicodeString(&processNameInfo->ProcessName, &strTargetProcess1, TRUE) != 0 && RtlCompareUnicodeString(&processNameInfo->ProcessName, &strTargetProcess2, TRUE) != 0)
+    if (RtlCompareUnicodeString(&processNameInfo->Name, &strTargetProcess1, TRUE) != 0 && RtlCompareUnicodeString(&processNameInfo->Name, &strTargetProcess2, TRUE) != 0)
     {
-      LOG(("[IM] Not our process name, do nothing\n"));
+      LOG(("[IM] This, %wZ, is not our process name, we are looking for %wZ or %wZ\n", &processNameInfo->Name, &strTargetProcess1, &strTargetProcess2));
       __leave;
     }
 
@@ -137,29 +137,29 @@ IMPostCreate(
 
     // now we know that target process are trying to open for execution something
     // it is enouth evidence to log it. So record will be created
-    NT_IF_FAIL_LEAVE(IMCreateRecord(&recordList, Data, &fileNameInfo->Name, &processNameInfo->FullName));
+    NT_IF_FAIL_LEAVE(IMCreateRecord(&recordList, Data, &fileNameInfo->FullName, &processNameInfo->FullName));
 
     // we are only allow .dll files
     if (RtlCompareUnicodeString(&fileNameInfo->Extension, &strAllowedExt, TRUE) != 0)
     {
       isBlocked = TRUE;
-      LOG(("[IM] Extention not a .dll\n"));
+      LOG(("[IM] Extention not a %wZ but %wZ\n", &strAllowedExt, &fileNameInfo->Extension));
       __leave;
     }
 
     // we restrict certain .dll files by checking is path contains
-    if (IMIsContainsString(&fileNameInfo->Name, &strResticted)) // CHECK THIS
+    if (IMIsContainsString(&fileNameInfo->FullName, &strResticted)) // CHECK THIS
     {
       isBlocked = TRUE;
-      LOG(("[IM] Restricted dll\n"));
+      LOG(("[IM] Restricted dll, %wZ\n", &strResticted));
       __leave;
     }
 
     // we only accept windows root folder and target process root folder
-    if (!IMIsStartWithString(&fileNameInfo->Name, &strAllowedDir1) && !IMIsStartWithString(&fileNameInfo->Name, &processNameInfo->ParentDir)) // CHECK THIS
+    if (!IMIsStartWithString(&fileNameInfo->ParentDir, &strAllowedDir1) && RtlCompareUnicodeString(&fileNameInfo->ParentDir, &processNameInfo->ParentDir, TRUE) != 0) // CHECK THIS
     {
       isBlocked = TRUE;
-      LOG(("[IM] Restricted dll path\n"));
+      LOG(("[IM] Allowed paths %wZ and %wZ, but we have %wZ\n", &strAllowedDir1, &processNameInfo->ParentDir, &fileNameInfo->ParentDir));
       __leave;
     }
   }
@@ -172,12 +172,12 @@ IMPostCreate(
 
     if (NULL != fileNameInfo)
     {
-      FltReleaseFileNameInformation(fileNameInfo);
+      IMReleaseNameInformation(fileNameInfo);
     }
 
     if (NULL != processNameInfo)
     {
-      IMReleaseProcessNameInformation(processNameInfo);
+      IMReleaseNameInformation(processNameInfo);
     }
 
     if (isBlocked)
