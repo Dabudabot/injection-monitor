@@ -25,7 +25,15 @@ Kernel mode
 #include "im_drv.h"
 #include "im_comm.h"
 #include "im_utils.h"
+#include "im_list.h"
 #include "im_rec.h"
+#include "im_proc.h"
+
+//------------------------------------------------------------------------
+//  Defines.
+//------------------------------------------------------------------------
+
+#define IM_DEFAULT_MAX_RECORDS 100
 
 //------------------------------------------------------------------------
 //  Local function prototypes.
@@ -114,6 +122,11 @@ Status of the operation.
     NT_IF_FAIL_LEAVE(IMInitCommunication(Globals.Filter, &Globals.ServerPort));
 
     //
+    // register process callback
+    //
+    NT_IF_FAIL_LEAVE(PsSetCreateProcessNotifyRoutine(IMCreateProcessNotifyRoutine, FALSE));
+
+    //
     //  We are now ready to start filtering
     //
     NT_IF_FAIL_LEAVE(FltStartFiltering(Globals.Filter));
@@ -182,12 +195,17 @@ Always success
     IMDeinitCommunication(Globals.ServerPort);
   }
 
+  //
+  // unregister process callback
+  //
+  PsSetCreateProcessNotifyRoutine(IMCreateProcessNotifyRoutine, TRUE);
+
   if (NULL != Globals.Filter)
   {
     FltUnregisterFilter(Globals.Filter);
   }
 
-  IMFreeList(&Globals.RecordHead.RecordListLock, &Globals.RecordHead.RecordList);
+  IMFreeList(&Globals.RecordsHead.ElementListLock, &Globals.RecordsHead.ElementList, Globals.RecordsHead.ElementFreeCallback);
 
   IMDeinitializeGlobals();
 
@@ -225,20 +243,21 @@ static _Check_return_
 
   LOG(("[IM] Globals initializing\n"));
 
+  UNICODE_STRING strHl = CONSTANT_STRING(IM_HL_PROCESS_NAME);
+  UNICODE_STRING strCs = CONSTANT_STRING(IM_CS_PROCESS_NAME);
+
+  RtlZeroMemory(&Globals, sizeof(IM_GLOBALS));
+
   Globals.DriverObject = DriverObject;
-  Globals.LogSequenceNumber = 0;
 
   __try
   {
-    NT_IF_FAIL_LEAVE(IMInitList(&Globals.RecordHead, sizeof(IM_KRECORD)));
+    NT_IF_FAIL_LEAVE(IMInitList(&Globals.RecordsHead, sizeof(IM_KRECORD), IM_DEFAULT_MAX_RECORDS, IMFreeRecordList));
 
-    ExInitializeNPagedLookasideList(&Globals.RecordsLookaside,
-                                    NULL,
-                                    NULL,
-                                    POOL_NX_ALLOCATION,
-                                    sizeof(IM_KRECORD_LIST),
-                                    IM_KRECORDS_TAG,
-                                    0);
+    NT_IF_FAIL_LEAVE(IMCopyUnicodeString(&Globals.TargetProcessInfo[IM_HL_PROCESS_INFO_INDEX].TargetName, &strHl));
+    NT_IF_FAIL_LEAVE(IMCopyUnicodeString(&Globals.TargetProcessInfo[IM_CS_PROCESS_INFO_INDEX].TargetName, &strCs));
+    
+
   }
   __finally
   {
@@ -264,9 +283,7 @@ IMDeinitializeGlobals()
 
   LOG(("[IM] Globals deinitializing\n"));
 
-  IMDeinitList(&Globals.RecordHead);
-
-  ExDeleteNPagedLookasideList(&Globals.RecordsLookaside);
+  IMDeinitList(&Globals.RecordsHead);
 
   LOG(("[IM] Globals deinitialized\n"));
 }

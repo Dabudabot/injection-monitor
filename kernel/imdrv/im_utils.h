@@ -105,3 +105,17 @@ _Check_return_
         _Out_ PUNICODE_STRING Ending,
         _In_ WCHAR Delimeter,
         _In_ LONG Occurrence);
+
+_Check_return_
+    NTSTATUS
+    IMConcatStrings(
+        _Out_ PUNICODE_STRING Dest,
+        _In_ PUNICODE_STRING Start,
+        _In_ PUNICODE_STRING End);
+
+_Check_return_
+    NTSTATUS
+    IMToString(
+        _In_ PWCHAR Buffer,
+        _In_ ULONG Size,
+        _In_ PUNICODE_STRING String);

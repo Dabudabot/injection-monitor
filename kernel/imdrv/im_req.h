@@ -27,29 +27,6 @@ Kernel mode
 #include "im.h"
 
 //------------------------------------------------------------------------
-// Structures defenitions
-//------------------------------------------------------------------------
-
-//
-// Similar to file name information
-//
-typedef struct _IM_NAME_INFORMATION
-{
-    // ParentDir + Name
-    UNICODE_STRING FullName;
-
-    // only name with extension without prefix backslash
-    UNICODE_STRING Name;
-
-    // Extension
-    UNICODE_STRING Extension;
-
-    // parent dir name from root to backslash
-    UNICODE_STRING ParentDir;
-
-} IM_NAME_INFORMATION, *PIM_NAME_INFORMATION;
-
-//------------------------------------------------------------------------
 //  Function prototypes
 //------------------------------------------------------------------------
 
@@ -63,7 +40,7 @@ _Check_return_
     _IRQL_requires_(PASSIVE_LEVEL)
         NTSTATUS
     IMGetProcessNameInformation(
-        _Inout_ PFLT_CALLBACK_DATA Data,
+        _In_ HANDLE ProcessId,
         _Outptr_ PIM_NAME_INFORMATION *NameInformation);
 
 VOID IMReleaseNameInformation(

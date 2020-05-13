@@ -59,7 +59,7 @@ LONG IMExceptionFilter(
 _Check_return_
     NTSTATUS
     IMGetRecords(
-        _In_ PIM_KRECORD_HEAD RecordHead,
+        _In_ PIM_KLIST_HEAD RecordsHead,
         _Out_ PVOID OutputBuffer,
         _In_ ULONG OutputBufferSize,
         _Out_ PULONG ReturnOutputBufferLength);
@@ -318,7 +318,7 @@ IMMessage(
       //
 
       status = IMGetRecords(
-          &Globals.RecordHead,
+          &Globals.RecordsHead,
           OutputBuffer,
           OutputBufferSize,
           ReturnOutputBufferLength);
@@ -374,7 +374,7 @@ LONG IMExceptionFilter(
 _Check_return_
     NTSTATUS
     IMGetRecords(
-        _In_ PIM_KRECORD_HEAD RecordHead,
+        _In_ PIM_KLIST_HEAD RecordsHead,
         _Out_ PVOID OutputBuffer,
         _In_ ULONG OutputBufferSize,
         _Out_ PULONG ReturnOutputBufferLength)
@@ -385,13 +385,13 @@ _Check_return_
   PIM_KRECORD_LIST recordList;
   ULONG copiedLen = 0;
 
-  PKSPIN_LOCK listLock = &RecordHead->RecordListLock;
-  PLIST_ENTRY listEntry = &RecordHead->RecordList;
-  ULONG sizeOfRecord = RecordHead->RecordStructSize;
+  PKSPIN_LOCK listLock = &RecordsHead->ElementListLock;
+  PLIST_ENTRY listEntry = &RecordsHead->ElementList;
+  ULONG sizeOfRecord = RecordsHead->ElementStructSize;
 
   PAGED_CODE();
 
-  IF_FALSE_RETURN_RESULT(RecordHead != NULL, STATUS_INVALID_PARAMETER_1);
+  IF_FALSE_RETURN_RESULT(RecordsHead != NULL, STATUS_INVALID_PARAMETER_1);
   IF_FALSE_RETURN_RESULT(OutputBuffer != NULL, STATUS_INVALID_PARAMETER_2);
   IF_FALSE_RETURN_RESULT(OutputBufferSize != 0, STATUS_INVALID_PARAMETER_3);
   IF_FALSE_RETURN_RESULT(ReturnOutputBufferLength != NULL, STATUS_INVALID_PARAMETER_4);
@@ -444,8 +444,8 @@ _Check_return_
 
     IMFreeRecord(recordList);
 
-    InterlockedDecrement64(&RecordHead->RecordsPushed);
-	ASSERT(RecordHead->RecordsPushed >= 0); // todo sometimes it decs earlier than incs
+    InterlockedDecrement64(&RecordsHead->ElementsPushed);
+    ASSERT(RecordsHead->ElementsPushed >= 0); // todo sometimes it decs earlier than incs
 
     KeAcquireSpinLock(listLock, &oldIrql);
   }

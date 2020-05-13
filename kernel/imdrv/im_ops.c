@@ -25,19 +25,39 @@ Kernel mode
 #include "im_req.h"
 #include "im_utils.h"
 #include "im_rec.h"
+#include "im_list.h"
 
 //------------------------------------------------------------------------
 //  Defines.
 //------------------------------------------------------------------------
-
-#define IM_TARGET_PROCESS_NAME_1 L"hl.exe"   // todo consider to not to hardcode it.
-#define IM_TARGET_PROCESS_NAME_2 L"csgo.exe" // todo consider to not to hardcode it.
 
 #define IM_ALLOWED_EXTENTION L"dll"
 
 #define IM_RESTRICTED_FILE L"Steam\\crashhandler.dll" //consider to not to hardcode it
 
 #define IM_ALLOWED_DIR_1 L"\\Device\\HarddiskVolume3\\Windows\\" // todo look for right device harddisk
+
+#define IM_SW_DLL L"sw.dll"
+#define IM_HW_DLL L"hw.dll"
+
+//------------------------------------------------------------------------
+//  Local functions
+//------------------------------------------------------------------------
+
+_Check_return_
+    NTSTATUS
+    IMDecideVideoMode(
+        _In_ PFILE_OBJECT FileObject,
+        _In_ PIM_NAME_INFORMATION ProcessNameInfo,
+        _In_ PIM_NAME_INFORMATION FileNameInfo,
+        _Out_ PIM_VIDEO_MODE_STATUS VideoMode);
+
+_Check_return_
+    NTSTATUS
+    IMDecideBlock(
+        _In_ PUNICODE_STRING FullProcessName,
+        _In_ PIM_NAME_INFORMATION FileNameInfo,
+        _Out_ PBOOLEAN IsBlocked);
 
 //------------------------------------------------------------------------
 //  Text sections.
@@ -46,6 +66,8 @@ Kernel mode
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text(PAGE, IMPreCreate)
 #pragma alloc_text(PAGE, IMPostCreate)
+#pragma alloc_text(PAGE, IMDecideVideoMode)
+#pragma alloc_text(PAGE, IMDecideBlock)
 #endif // ALLOC_PRAGMA
 
 //------------------------------------------------------------------------
@@ -60,6 +82,14 @@ IMPreCreate(
     _Flt_CompletionContext_Outptr_ PVOID *CompletionContext)
 {
   ACCESS_MASK desiredAccess;
+  FLT_PREOP_CALLBACK_STATUS cbStatus = FLT_PREOP_SUCCESS_NO_CALLBACK;
+  NTSTATUS status = STATUS_SUCCESS;
+  ULONG i = 0;
+  HANDLE processId = NULL;
+  PIM_NAME_INFORMATION processNameInfo = NULL;
+  PIM_NAME_INFORMATION fileNameInfo = NULL;
+  PIM_KRECORD_LIST recordList = NULL;
+  IM_VIDEO_MODE_STATUS videoMode = IM_NOT_APPLICABLE;
 
   *CompletionContext = NULL;
 
@@ -72,16 +102,89 @@ IMPreCreate(
   FLT_ASSERT(Data->Iopb != NULL);
   FLT_ASSERT(Data->Iopb->MajorFunction == IRP_MJ_CREATE);
 
-  desiredAccess = Data->Iopb->Parameters.Create.SecurityContext->DesiredAccess;
+  __try
+  {
+    desiredAccess = Data->Iopb->Parameters.Create.SecurityContext->DesiredAccess;
+    processId = PsGetCurrentProcessId();
 
-  if (FlagOn(desiredAccess, FILE_EXECUTE)) // CHECK THIS
-  {
-    return FLT_PREOP_SUCCESS_WITH_CALLBACK;
+    // opening without execution rights, not our case definitly
+    if (!FlagOn(desiredAccess, FILE_EXECUTE))
+    {
+      __leave;
+    }
+
+    // we skip paging
+    // we not looking for volumes
+    // we do not work in opening by id
+    if (FlagOn(Data->Iopb->OperationFlags, SL_OPEN_PAGING_FILE) || FlagOn(Data->Iopb->TargetFileObject->Flags, FO_VOLUME_OPEN))
+    {
+      __leave;
+    }
+
+    // is current process id is our process?
+    for (; i < IM_AMOUNT_OF_TARGET_PROCESSES; i++)
+    {
+      if (processId == Globals.TargetProcessInfo[i].ProcessId && Globals.TargetProcessInfo[i].isActive)
+      {
+        processNameInfo = Globals.TargetProcessInfo[i].NameInfo;
+      }
+    }
+
+    // it is not our target process
+    if (NULL == processNameInfo)
+    {
+      __leave;
+    }
+    else
+    {
+      LOG(("[IM] We are working now with %wZ\n", &processNameInfo->Name));
+    }
+
+    // get file info of the file witch are opening by the process
+    NT_IF_FAIL_LEAVE(IMGetFileNameInformation(Data, &fileNameInfo));
+
+    // now we make decision about video mode
+    NT_IF_FAIL_LEAVE(IMDecideVideoMode(Data->Iopb->TargetFileObject, processNameInfo, fileNameInfo, &videoMode));
+
+    // now we create record for log
+    NT_IF_FAIL_LEAVE(IMCreateRecord(&recordList, Data, fileNameInfo, &processNameInfo->FullName, videoMode));
   }
-  else
+  __finally
   {
-    return FLT_PREOP_SUCCESS_NO_CALLBACK;
+    if (NT_SUCCESS(status))
+    {
+      // if need to change mode we fake reparse point
+      if (IM_VIDEO_HW_TO_SW == videoMode || IM_VIDEO_SW_TO_HW == videoMode)
+      {
+        Data->IoStatus.Status = STATUS_REPARSE;
+        Data->IoStatus.Information = IO_REPARSE;
+        cbStatus = FLT_PREOP_COMPLETE;
+        recordList->Record.IsSucceded = TRUE;
+        IMPush(&recordList->List, &Globals.RecordsHead);
+      }
+      else
+      {
+        if (NULL == recordList)
+        {
+          *CompletionContext = recordList;
+          cbStatus = FLT_PREOP_SUCCESS_WITH_CALLBACK;
+        }
+        else
+        {
+          *CompletionContext = NULL;
+          cbStatus = FLT_PREOP_SUCCESS_NO_CALLBACK;
+        }
+      }
+    }
+    else
+    {
+      // thats should not happen
+      Data->IoStatus.Status = status;
+      cbStatus = FLT_PREOP_COMPLETE;
+    }
   }
+
+  return cbStatus;
 }
 
 FLT_POSTOP_CALLBACK_STATUS
@@ -94,19 +197,9 @@ IMPostCreate(
 {
   NTSTATUS status = STATUS_SUCCESS;
   PIM_KRECORD_LIST recordList = NULL;
-
-  PIM_NAME_INFORMATION processNameInfo = NULL;
   PIM_NAME_INFORMATION fileNameInfo = NULL;
-
   BOOLEAN isBlocked = FALSE;
-
-  UNICODE_STRING strTargetProcess1 = CONSTANT_STRING(IM_TARGET_PROCESS_NAME_1);
-  UNICODE_STRING strTargetProcess2 = CONSTANT_STRING(IM_TARGET_PROCESS_NAME_2);
-  UNICODE_STRING strAllowedExt = CONSTANT_STRING(IM_ALLOWED_EXTENTION);
-  UNICODE_STRING strResticted = CONSTANT_STRING(IM_RESTRICTED_FILE);
-  UNICODE_STRING strAllowedDir1 = CONSTANT_STRING(IM_ALLOWED_DIR_1);
-
-  PAGED_CODE();
+  UNICODE_STRING fullProcessName;
 
   //DbgBreakPoint();
 
@@ -117,51 +210,28 @@ IMPostCreate(
   FLT_ASSERT(Data != NULL);
   FLT_ASSERT(Data->Iopb != NULL);
   FLT_ASSERT(Data->Iopb->MajorFunction == IRP_MJ_CREATE);
+  FLT_ASSERT(CompletionContext != NULL);
+
+  recordList = (PIM_KRECORD_LIST)CompletionContext;
 
   LOG(("[IM] Post create start\n"));
 
   __try
   {
-    // first we have to get our process name information
-    NT_IF_FAIL_LEAVE(IMGetProcessNameInformation(Data, &processNameInfo));
+    fileNameInfo = (PIM_NAME_INFORMATION) recordList->Record.FileNameInformation;
 
-    // we are looking only for specific process names
-    if (RtlCompareUnicodeString(&processNameInfo->Name, &strTargetProcess1, TRUE) != 0 && RtlCompareUnicodeString(&processNameInfo->Name, &strTargetProcess2, TRUE) != 0)
+    if (NULL == fileNameInfo)
     {
-      LOG(("[IM] This, %wZ, is not our process name, we are looking for %wZ or %wZ\n", &processNameInfo->Name, &strTargetProcess1, &strTargetProcess2));
+      status = STATUS_UNSUCCESSFUL;
       __leave;
     }
 
-    // get file info of the file witch are opening by the process
-    NT_IF_FAIL_LEAVE(IMGetFileNameInformation(Data, &fileNameInfo));
+    NT_IF_FAIL_LEAVE(IMToString((PWCHAR)recordList->Record.Data[IM_PROCESS_NAME_INDEX].Buffer, recordList->Record.Data[IM_PROCESS_NAME_INDEX].Size, &fullProcessName));
 
-    // now we know that target process are trying to open for execution something
-    // it is enouth evidence to log it. So record will be created
-    NT_IF_FAIL_LEAVE(IMCreateRecord(&recordList, Data, &fileNameInfo->FullName, &processNameInfo->FullName));
-
-    // we are only allow .dll files
-    if (RtlCompareUnicodeString(&fileNameInfo->Extension, &strAllowedExt, TRUE) != 0)
-    {
-      isBlocked = TRUE;
-      LOG(("[IM] Extention not a %wZ but %wZ\n", &strAllowedExt, &fileNameInfo->Extension));
-      __leave;
-    }
-
-    // we restrict certain .dll files by checking is path contains
-    if (IMIsContainsString(&fileNameInfo->FullName, &strResticted)) // CHECK THIS
-    {
-      isBlocked = TRUE;
-      LOG(("[IM] Restricted dll, %wZ\n", &strResticted));
-      __leave;
-    }
-
-    // we only accept windows root folder and target process root folder
-    if (!IMIsStartWithString(&fileNameInfo->ParentDir, &strAllowedDir1) && RtlCompareUnicodeString(&fileNameInfo->ParentDir, &processNameInfo->ParentDir, TRUE) != 0) // CHECK THIS
-    {
-      isBlocked = TRUE;
-      LOG(("[IM] Allowed paths %wZ and %wZ, but we have %wZ\n", &strAllowedDir1, &processNameInfo->ParentDir, &fileNameInfo->ParentDir));
-      __leave;
-    }
+    //
+    // now we deciding to block load or not
+    //
+    NT_IF_FAIL_LEAVE(IMDecideBlock(&fullProcessName, fileNameInfo, &isBlocked));
   }
   __finally
   {
@@ -173,11 +243,6 @@ IMPostCreate(
     if (NULL != fileNameInfo)
     {
       IMReleaseNameInformation(fileNameInfo);
-    }
-
-    if (NULL != processNameInfo)
-    {
-      IMReleaseNameInformation(processNameInfo);
     }
 
     if (isBlocked)
@@ -196,9 +261,119 @@ IMPostCreate(
         LOG(("[IM] Operation succeeded\n"));
         recordList->Record.IsSucceded = TRUE;
       }
-      IMPush(&recordList->List, &Globals.RecordHead);
+      IMPush(&recordList->List, &Globals.RecordsHead);
     }
   }
 
   return FLT_POSTOP_FINISHED_PROCESSING;
+}
+
+_Check_return_
+    NTSTATUS
+    IMDecideVideoMode(
+        _In_ PFILE_OBJECT FileObject,
+        _In_ PIM_NAME_INFORMATION ProcessNameInfo,
+        _In_ PIM_NAME_INFORMATION FileNameInfo,
+        _Out_ PIM_VIDEO_MODE_STATUS VideoMode)
+{
+  NTSTATUS status = STATUS_SUCCESS;
+  IM_VIDEO_MODE_STATUS videoMode = IM_NOT_APPLICABLE;
+  UNICODE_STRING strSw = CONSTANT_STRING(IM_SW_DLL);
+  UNICODE_STRING strHw = CONSTANT_STRING(IM_HW_DLL);
+  UNICODE_STRING replacement;
+
+  PAGED_CODE();
+
+  *VideoMode = IM_NOT_APPLICABLE;
+
+  __try
+  {
+    // it is only works with hl
+    if (RtlCompareUnicodeString(&ProcessNameInfo->Name, &Globals.TargetProcessInfo[IM_HL_PROCESS_INFO_INDEX].TargetName, TRUE) != 0)
+    {
+      __leave;
+    }
+
+    // is it already hw?
+    if (RtlCompareUnicodeString(&FileNameInfo->Name, &strHw, TRUE) == 0)
+    {
+      videoMode = IM_VIDEO_HW;
+      __leave;
+    }
+
+    // may be it is sw
+    if (RtlCompareUnicodeString(&FileNameInfo->Name, &strSw, TRUE) == 0)
+    {
+      // concat
+      NT_IF_FAIL_LEAVE(IMConcatStrings(&replacement, &FileNameInfo->ParentDir, &strHw));
+
+      // then need to change
+      NT_IF_FAIL_LEAVE(IoReplaceFileObjectName(FileObject, replacement.Buffer, replacement.Length));
+
+      videoMode = IM_VIDEO_SW_TO_HW;
+    }
+
+    // by default it is no applicable
+  }
+  __finally
+  {
+    if (NT_SUCCESS(status))
+    {
+      *VideoMode = videoMode;
+    }
+    else
+    {
+      *VideoMode = IM_VIDEO_ERROR;
+    }
+  }
+
+  return status;
+}
+
+_Check_return_
+    NTSTATUS
+    IMDecideBlock(
+        _In_ PUNICODE_STRING FullProcessName,
+        _In_ PIM_NAME_INFORMATION FileNameInfo,
+        _Out_ PBOOLEAN IsBlocked)
+{
+  UNICODE_STRING strAllowedExt = CONSTANT_STRING(IM_ALLOWED_EXTENTION);
+  UNICODE_STRING strResticted = CONSTANT_STRING(IM_RESTRICTED_FILE);
+  UNICODE_STRING strAllowedDir1 = CONSTANT_STRING(IM_ALLOWED_DIR_1);
+  BOOLEAN isBlocked = FALSE;
+
+  PAGED_CODE();
+
+  __try
+  {
+    // we are only allow .dll files
+    if (RtlCompareUnicodeString(&FileNameInfo->Extension, &strAllowedExt, TRUE) != 0)
+    {
+      isBlocked = TRUE;
+      LOG(("[IM] Extention not a %wZ but %wZ\n", &strAllowedExt, &FileNameInfo->Extension));
+      __leave;
+    }
+
+    // we restrict certain .dll files by checking is path contains
+    if (IMIsContainsString(&FileNameInfo->FullName, &strResticted))
+    {
+      isBlocked = TRUE;
+      LOG(("[IM] Restricted dll, %wZ\n", &strResticted));
+      __leave;
+    }
+
+    // we only accept windows root folder and target process root folder
+    if (!IMIsStartWithString(&FileNameInfo->ParentDir, &strAllowedDir1) && !IMIsStartWithString(&FileNameInfo->ParentDir, FullProcessName))
+    {
+      isBlocked = TRUE;
+      LOG(("[IM] Allowed paths %wZ and %wZ, but we have %wZ\n", &strAllowedDir1, &processNameInfo->ParentDir, &fileNameInfo->ParentDir));
+      __leave;
+    }
+  }
+  __finally
+  {
+    *IsBlocked = isBlocked;
+  }
+
+  return STATUS_SUCCESS;
 }

@@ -14,7 +14,8 @@
     <ClCompile Include="imlib.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\InjectorMonitor.h" />
+    <ClInclude Include="..\include\InjectorMonitorUser.h" />
+    <ClInclude Include="..\include\InjectorMonitorCommon.h" />
     <ClInclude Include="imlib_macro.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -92,7 +93,7 @@
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(WDKContentRoot)\Include\km;$(ProjectDir)..\..\kernel\include;$(ProjectDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(WDKContentRoot)\Include\km;$(ProjectDir)..\..\kernel\include;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

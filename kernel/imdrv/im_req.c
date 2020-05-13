@@ -164,11 +164,9 @@ _Check_return_
     _IRQL_requires_(PASSIVE_LEVEL)
         NTSTATUS
     IMGetProcessNameInformation(
-        _Inout_ PFLT_CALLBACK_DATA Data,
+        _In_ HANDLE ProcessId,
         _Outptr_ PIM_NAME_INFORMATION *NameInformation)
 {
-  UNREFERENCED_PARAMETER(Data);
-
   NTSTATUS status = STATUS_SUCCESS;
   ULONG returnedLength = 0;
   HANDLE hProcess = NULL;
@@ -183,13 +181,7 @@ _Check_return_
 
   __try
   {
-    eProcess = PsGetCurrentProcess();
-
-    if (NULL == eProcess)
-    {
-      LOG_B(("[IM] EPROCESS strcute are WRONG\n"));
-      __leave;
-    }
+    NT_IF_FAIL_LEAVE(PsLookupProcessByProcessId(ProcessId, &eProcess));
 
     NT_IF_FAIL_LEAVE(ObOpenObjectByPointer(eProcess, 0, NULL, 0, 0, KernelMode, &hProcess));
 

@@ -59,7 +59,7 @@
     <ClCompile>
       <TreatWarningAsError>true</TreatWarningAsError>
       <WarningLevel>Level4</WarningLevel>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)$(ProjectDir)..\include;$(ProjectDir)..\..\libs\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);_WIN2K_COMPAT_SLIST_USAGE</PreprocessorDefinitions>
       <ExceptionHandling>
       </ExceptionHandling>
@@ -81,7 +81,7 @@
     <ClCompile>
       <TreatWarningAsError>true</TreatWarningAsError>
       <WarningLevel>Level4</WarningLevel>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)$(ProjectDir)..\include;$(ProjectDir)..\..\libs\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);_WIN2K_COMPAT_SLIST_USAGE</PreprocessorDefinitions>
       <ExceptionHandling>
       </ExceptionHandling>
@@ -98,7 +98,9 @@
   <ItemGroup>
     <ClCompile Include="im_comm.c" />
     <ClCompile Include="im_drv.c" />
+    <ClCompile Include="im_list.c" />
     <ClCompile Include="im_ops.c" />
+    <ClCompile Include="im_proc.c" />
     <ClCompile Include="im_rec.c" />
     <ClCompile Include="im_reg.c" />
     <ClCompile Include="im_req.c" />
@@ -117,6 +119,7 @@
   <ItemGroup>
     <ClInclude Exclude="@(ClInclude)" Include="*.h;*.hpp;*.hxx;*.hm;*.inl;*.xsd" />
     <ClInclude Include="..\include\InjectorMonitorKrnl.h" />
+    <ClInclude Include="..\..\libs\include\InjectorMonitorCommon.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

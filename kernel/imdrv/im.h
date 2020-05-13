@@ -31,59 +31,137 @@ Kernel mode
 //  Definitions.
 //------------------------------------------------------------------------
 
+// todo consider to not to hardcode it.
+#define IM_AMOUNT_OF_TARGET_PROCESSES 2
+#define IM_HL_PROCESS_INFO_INDEX 0
+#define IM_CS_PROCESS_INFO_INDEX 1
+#define IM_HL_PROCESS_NAME L"hl.exe"
+#define IM_CS_PROCESS_NAME L"csgo.exe"
+
 //
 // tags for memory
 //
-#define IM_KRECORDS_TAG ('IMkt')
+#define IM_KLIST_TAG ('IMkt')
 #define IM_BUFFER_TAG ('IMbt')
+
+//------------------------------------------------------------------------
+//  Callback definitions.
+//------------------------------------------------------------------------
+
+typedef VOID (*IM_KELEMENT_FREE_CALLBACK)(PLIST_ENTRY ListEntry);
 
 //------------------------------------------------------------------------
 //  Structures.
 //------------------------------------------------------------------------
 
 //
-// Record List head in globals
+// Similar to file name information
 //
-typedef struct _IM_KRECORD_HEAD
+typedef struct _IM_NAME_INFORMATION
 {
-	//
-	// size of IM_KRECORD struct
-	//
-	ULONG RecordStructSize;
+  // ParentDir + Name
+  UNICODE_STRING FullName;
 
-	//
-	//  List of records with data to send to user mode.
-	//
-	LIST_ENTRY RecordList;
+  // only name with extension without prefix backslash
+  UNICODE_STRING Name;
 
-	//
-	//  Protection for the list of records
-	//
-	KSPIN_LOCK RecordListLock;
+  // Extension
+  UNICODE_STRING Extension;
 
-	//
-	// pushing record event
-	//
-	PKEVENT OutputRecordEvent;
+  // parent dir name from root to backslash
+  UNICODE_STRING ParentDir;
 
-	//
-	//  Maximum amount of records we could keep in memory
-	//
-	LONG MaxRecordsToPush;
+} IM_NAME_INFORMATION, *PIM_NAME_INFORMATION;
 
-	//
-	//  Current amount of records we keep in memory
-	//
-	__volatile LONGLONG RecordsPushed;
+//
+// Information about our process
+//
+typedef struct _IM_PROCESS_INFO
+{
+  //
+  // unique id from windows
+  //
+  HANDLE ProcessId;
 
-} IM_KRECORD_HEAD, *PIM_KRECORD_HEAD;
+  //
+  // information about parent dir, name and extention
+  //
+  PIM_NAME_INFORMATION NameInfo;
+
+  //
+  // Name for which we are looking for
+  //
+  UNICODE_STRING TargetName;
+
+  //
+  // Process is now active
+  //
+  BOOLEAN isActive;
+
+  //
+  // Currently we are not allow duplications
+  //
+  BOOLEAN isDuplicate;
+
+} IM_PROCESS_INFO, *PIM_PROCESS_INFO;
+
+//
+// List head in globals
+//
+typedef struct _IM_KLIST_HEAD
+{
+  //
+  // size of IM_K*** struct
+  //
+  ULONG ElementStructSize;
+
+  //
+  //  Lookaside list used for allocating elements
+  //
+  NPAGED_LOOKASIDE_LIST ElementsLookaside;
+
+  //
+  //  Variable for maintaining sequence numbers.
+  //
+  __volatile LONGLONG SequenceNumber;
+
+  //
+  //  List of elements with data to send to user mode.
+  //
+  LIST_ENTRY ElementList;
+
+  //
+  //  Protection for the list of elements
+  //
+  KSPIN_LOCK ElementListLock;
+
+  //
+  // pushing element event
+  //
+  PKEVENT NewElementEvent;
+
+  //
+  //  Maximum amount of elements we could keep in memory
+  //
+  LONG MaxElementsToPush;
+
+  //
+  //  Current amount of elements we keep in memory
+  //
+  __volatile LONGLONG ElementsPushed;
+
+  //
+  // Callback to free list element
+  //
+  IM_KELEMENT_FREE_CALLBACK ElementFreeCallback;
+
+} IM_KLIST_HEAD, *PIM_KLIST_HEAD;
 
 //
 // Global driver data structure
 //
 typedef struct _IM_GLOBALS
 {
-
   //
   //  The object that identifies this driver.
   //
@@ -108,19 +186,14 @@ typedef struct _IM_GLOBALS
   PFLT_PORT ClientPort;
 
   //
-  //  Lookaside list used for allocating records
+  // logged records
   //
-  NPAGED_LOOKASIDE_LIST RecordsLookaside;
+  IM_KLIST_HEAD RecordsHead;
 
   //
-  //  Variable for maintaining LogRecord sequence numbers.
+  // hl and cs processes info
   //
-  __volatile LONGLONG LogSequenceNumber;
-
-  //
-  // blocked records
-  //
-  IM_KRECORD_HEAD RecordHead;
+  IM_PROCESS_INFO TargetProcessInfo[IM_AMOUNT_OF_TARGET_PROCESSES];
 
 } IM_GLOBALS, *PIM_GLOBALS;
 

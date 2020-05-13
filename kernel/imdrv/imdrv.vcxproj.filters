@@ -15,6 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="im_list.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="im_proc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="im_drv.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -41,6 +47,8 @@
     <ClInclude Include="im.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_proc.h" />
     <ClInclude Include="im_comm.h" />
     <ClInclude Include="im_drv.h" />
     <ClInclude Include="im_macro.h" />
@@ -51,6 +59,8 @@
     <ClInclude Include="im.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_proc.h" />
     <ClInclude Include="im_comm.h" />
     <ClInclude Include="im_drv.h" />
     <ClInclude Include="im_macro.h" />
@@ -61,6 +71,8 @@
     <ClInclude Include="im.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_proc.h" />
     <ClInclude Include="im_comm.h" />
     <ClInclude Include="im_drv.h" />
     <ClInclude Include="im_macro.h" />
@@ -71,6 +83,8 @@
     <ClInclude Include="im.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_proc.h" />
     <ClInclude Include="im_comm.h" />
     <ClInclude Include="im_drv.h" />
     <ClInclude Include="im_macro.h" />
@@ -81,6 +95,8 @@
     <ClInclude Include="im.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_proc.h" />
     <ClInclude Include="im_comm.h" />
     <ClInclude Include="im_drv.h" />
     <ClInclude Include="im_macro.h" />
@@ -91,6 +107,8 @@
     <ClInclude Include="im.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_proc.h" />
     <ClInclude Include="im_comm.h" />
     <ClInclude Include="im_drv.h" />
     <ClInclude Include="im_macro.h" />
@@ -101,16 +119,8 @@
     <ClInclude Include="im.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="im_comm.h" />
-    <ClInclude Include="im_drv.h" />
-    <ClInclude Include="im_macro.h" />
-    <ClInclude Include="im_ops.h" />
-    <ClInclude Include="im_rec.h" />
-    <ClInclude Include="im_req.h" />
-    <ClInclude Include="im_utils.h" />
-    <ClInclude Include="im.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_proc.h" />
     <ClInclude Include="im_comm.h" />
     <ClInclude Include="im_drv.h" />
     <ClInclude Include="im_macro.h" />
@@ -121,6 +131,129 @@
     <ClInclude Include="..\include\InjectorMonitorKrnl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\libs\include\InjectorMonitorCommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_proc.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_proc.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_proc.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_proc.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_proc.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_proc.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_proc.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_proc.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_proc.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
+    <ClInclude Include="im.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="im_comm.h" />
+    <ClInclude Include="im_drv.h" />
+    <ClInclude Include="im_list.h" />
+    <ClInclude Include="im_macro.h" />
+    <ClInclude Include="im_ops.h" />
+    <ClInclude Include="im_proc.h" />
+    <ClInclude Include="im_rec.h" />
+    <ClInclude Include="im_req.h" />
+    <ClInclude Include="im_utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="im.rc">

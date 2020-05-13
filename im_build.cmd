@@ -8,9 +8,11 @@ set MACHINE=%1%
 set SNAPSHOT=%2%
 set SHARE_FOLDER=%3%
 
-call msbuildex.cmd "kernel\imdrv" imdrv Debug x64 "libs/imlib" imlib debug x64 "client\imapp" imapp debug x64 "tests\testdll0" testdll0 debug x64 "tests\testapp0" testapp0 debug x64
+call msbuildex.cmd "kernel\imdrv" imdrv Debug x64 "libs/imlib" imlib debug x64 "client\imapp" imapp debug x64 "tests\testdll0" testdll0 debug x64 "tests\testdll1" testdll1 debug x64 "tests\testapp0" testapp0 debug x64
 
 if errorlevel 1 goto :fail
+
+goto :end
 
 REM copy to the share all what we need to test
 

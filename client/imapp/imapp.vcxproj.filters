@@ -20,7 +20,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\libs\include\InjectorMonitor.h">
+    <ClInclude Include="..\..\libs\include\InjectorMonitorUser.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\include\InjectorMonitorCommon.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
   </ItemGroup>

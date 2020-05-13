@@ -41,6 +41,8 @@ Kernel mode
 #pragma alloc_text(PAGE, IMIsContainsString)
 #pragma alloc_text(PAGE, IMIsStartWithString)
 #pragma alloc_text(PAGE, IMSplitString)
+#pragma alloc_text(PAGE, IMConcatStrings)
+#pragma alloc_text(PAGE, IMToString)
 #endif // ALLOC_PRAGMA
 
 //------------------------------------------------------------------------
@@ -296,11 +298,11 @@ _Check_return_
   IF_FALSE_RETURN_RESULT(SourceString->Buffer != NULL, STATUS_INVALID_PARAMETER_2);
   IF_FALSE_RETURN_RESULT(NT_SUCCESS(RtlUnicodeStringValidate(SourceString)), STATUS_INVALID_PARAMETER_2);
 
-  NT_IF_FAIL_RETURN(IMAllocateUnicodeString(DestinationString, (USHORT) ((Length + 1) * sizeof(WCHAR))));
+  NT_IF_FAIL_RETURN(IMAllocateUnicodeString(DestinationString, (USHORT)((Length + 1) * sizeof(WCHAR))));
 
   RtlCopyMemory(DestinationString->Buffer, (SourceString->Buffer + Start), Length * sizeof(WCHAR));
   RtlZeroMemory(DestinationString->Buffer + Length, sizeof(WCHAR)); // '\0'
-  DestinationString->Length = (USHORT) (Length * sizeof(WCHAR));
+  DestinationString->Length = (USHORT)(Length * sizeof(WCHAR));
 
   LOG(("[IM] String to string copied partially\n"));
 
@@ -428,7 +430,7 @@ _Check_return_
     IF_FALSE_RETURN_RESULT(Ending->Buffer == NULL, STATUS_INVALID_PARAMETER_3);
     IF_FALSE_RETURN_RESULT(Ending->Length == 0, STATUS_INVALID_PARAMETER_3);
   }
-  
+
   if (Beginning == NULL)
   {
     IF_FALSE_RETURN_RESULT(Ending != NULL, STATUS_INVALID_PARAMETER_3);
@@ -440,7 +442,6 @@ _Check_return_
     IF_FALSE_RETURN_RESULT(Beginning->Buffer == NULL, STATUS_INVALID_PARAMETER_2);
     IF_FALSE_RETURN_RESULT(Beginning->Length == 0, STATUS_INVALID_PARAMETER_2);
   }
-  
 
   LOG(("[IM] String splitting started\n"));
 
@@ -481,8 +482,65 @@ _Check_return_
   {
     NT_IF_FAIL_RETURN(IMCopyUnicodeStringEx(Ending, String, i, (String->Length / sizeof(WCHAR)) - i));
   }
-  
+
   LOG(("[IM] String splitted\n"));
 
   return status;
+}
+
+_Check_return_
+    NTSTATUS
+    IMConcatStrings(
+        _Out_ PUNICODE_STRING Dest,
+        _In_ PUNICODE_STRING Start,
+        _In_ PUNICODE_STRING End)
+{
+  NTSTATUS status = STATUS_SUCCESS;
+
+  PAGED_CODE();
+
+  IF_FALSE_RETURN_RESULT(Dest != NULL, STATUS_INVALID_PARAMETER_2);
+  IF_FALSE_RETURN_RESULT(Dest->Buffer == NULL, STATUS_INVALID_PARAMETER_2);
+  IF_FALSE_RETURN_RESULT(Dest->Length == 0, STATUS_INVALID_PARAMETER_2);
+
+  IF_FALSE_RETURN_RESULT(Start != NULL, STATUS_INVALID_PARAMETER_2);
+  IF_FALSE_RETURN_RESULT(Start->Buffer != NULL, STATUS_INVALID_PARAMETER_2);
+  IF_FALSE_RETURN_RESULT(Start->Length != 0, STATUS_INVALID_PARAMETER_2);
+
+  IF_FALSE_RETURN_RESULT(End != NULL, STATUS_INVALID_PARAMETER_3);
+  IF_FALSE_RETURN_RESULT(End->Buffer != NULL, STATUS_INVALID_PARAMETER_3);
+  IF_FALSE_RETURN_RESULT(End->Length != 0, STATUS_INVALID_PARAMETER_3);
+
+  NT_IF_FAIL_RETURN(IMAllocateUnicodeString(Dest, Start->Length + End->Length + sizeof(WCHAR)));
+
+  RtlCopyMemory(Dest->Buffer, Start->Buffer, Start->Length);
+  RtlCopyMemory(Dest->Buffer + (Start->Length / sizeof(WCHAR)), End->Buffer, End->Length);
+  RtlZeroMemory(Dest->Buffer + ((Start->Length + End->Length) / sizeof(WCHAR)), sizeof(WCHAR)); // '/0'
+
+  return STATUS_SUCCESS;
+}
+
+_Check_return_
+    NTSTATUS
+    IMToString(
+        _In_ PWCHAR Buffer,
+        _In_ ULONG Size,
+        _Out_ PUNICODE_STRING String)
+{
+  NTSTATUS status = STATUS_SUCCESS;
+
+  PAGED_CODE();
+
+  IF_FALSE_RETURN_RESULT(Buffer != NULL, STATUS_INVALID_PARAMETER_1);
+  IF_FALSE_RETURN_RESULT(Size != 0, STATUS_INVALID_PARAMETER_2);
+
+  IF_FALSE_RETURN_RESULT(String != NULL, STATUS_INVALID_PARAMETER_3);
+  IF_FALSE_RETURN_RESULT(String->Buffer == NULL, STATUS_INVALID_PARAMETER_3);
+  IF_FALSE_RETURN_RESULT(String->Length == 0, STATUS_INVALID_PARAMETER_3);
+
+  NT_IF_FAIL_RETURN(IMAllocateUnicodeString(String, (USHORT) Size));
+  RtlCopyMemory(String->Buffer, String, Size - sizeof(WCHAR));
+  RtlZeroMemory(String->Buffer + (Size / sizeof(WCHAR)) - 1, sizeof(WCHAR)); // '/0'
+
+  return STATUS_SUCCESS;
 }

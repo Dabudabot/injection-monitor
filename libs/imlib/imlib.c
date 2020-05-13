@@ -23,7 +23,7 @@ User mode
 //  Includes.
 //------------------------------------------------------------------------
 
-#include "InjectorMonitor.h"
+#include "InjectorMonitorUser.h"
 #include "imlib_macro.h"
 #include "InjectorMonitorKrnl.h"
 #include "fltUser.h"
@@ -510,6 +510,7 @@ _Check_return_
   record->Time = kernelRecord->Time;
   record->IsBlocked = kernelRecord->IsBlocked;
   record->IsSucceded = kernelRecord->IsSucceded;
+  record->VideoMode = kernelRecord->VideoModeStatus;
 
   record->ProcessNameLength = kernelRecord->Data[IM_PROCESS_NAME_INDEX].Size / sizeof(WCHAR);
   record->FileNameLenght = kernelRecord->Data[IM_FILE_NAME_INDEX].Size / sizeof(WCHAR);

@@ -92,7 +92,8 @@
     <ClCompile Include="imapp.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\libs\include\InjectorMonitor.h" />
+    <ClInclude Include="..\..\libs\include\InjectorMonitorUser.h" />
+    <ClInclude Include="..\..\libs\include\InjectorMonitorCommon.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

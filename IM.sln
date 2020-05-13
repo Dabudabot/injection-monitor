@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30011.22
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imdrv", "kernel\imdrv\imdrv.vcxproj", "{46188C73-C71F-4F42-81DE-8B5A72C6931F}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testapp0", "tests\testapp0\testapp0.vcxproj", "{9BED2894-EA9F-4EC6-9C73-E3959FE0D2E2}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testdll0", "tests\testdll0\testdll0.vcxproj", "{1463BF1C-DB4D-40D2-9C05-9CA063AF1542}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testdll1", "tests\testdll1\testdll1.vcxproj", "{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -171,6 +173,34 @@ Global
 		{1463BF1C-DB4D-40D2-9C05-9CA063AF1542}.Win7 Release|Win32.Build.0 = Release|Win32
 		{1463BF1C-DB4D-40D2-9C05-9CA063AF1542}.Win7 Release|x64.ActiveCfg = Release|x64
 		{1463BF1C-DB4D-40D2-9C05-9CA063AF1542}.Win7 Release|x64.Build.0 = Release|x64
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Debug|ARM.ActiveCfg = Debug|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Debug|Win32.Build.0 = Debug|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Debug|x64.ActiveCfg = Debug|x64
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Debug|x64.Build.0 = Debug|x64
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Release|ARM.ActiveCfg = Release|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Release|Win32.ActiveCfg = Release|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Release|Win32.Build.0 = Release|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Release|x64.ActiveCfg = Release|x64
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Release|x64.Build.0 = Release|x64
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Win7 Debug|ARM.ActiveCfg = Debug|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Win7 Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Win7 Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Win7 Debug|Win32.ActiveCfg = Debug|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Win7 Debug|Win32.Build.0 = Debug|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Win7 Debug|x64.ActiveCfg = Debug|x64
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Win7 Debug|x64.Build.0 = Debug|x64
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Win7 Release|ARM.ActiveCfg = Release|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Win7 Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Win7 Release|Mixed Platforms.Build.0 = Release|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Win7 Release|Win32.ActiveCfg = Release|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Win7 Release|Win32.Build.0 = Release|Win32
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Win7 Release|x64.ActiveCfg = Release|x64
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250}.Win7 Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -178,6 +208,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{9BED2894-EA9F-4EC6-9C73-E3959FE0D2E2} = {C4BAFCB7-D91A-40D4-8F9D-E31322CEDDA3}
 		{1463BF1C-DB4D-40D2-9C05-9CA063AF1542} = {C4BAFCB7-D91A-40D4-8F9D-E31322CEDDA3}
+		{2CA95282-7DB9-421B-AE5F-D6F4D9B13250} = {C4BAFCB7-D91A-40D4-8F9D-E31322CEDDA3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1E1DAA99-0B98-45DF-B020-5F2B4E57B5F9}

@@ -30,184 +30,14 @@ Kernel mode
 //------------------------------------------------------------------------
 
 #ifdef ALLOC_PRAGMA
-#pragma alloc_text(PAGE, IMInitList)
-#pragma alloc_text(PAGE, IMDeinitList)
-#pragma alloc_text(PAGE, IMFreeList)
-#pragma alloc_text(PAGE, IMPush)
-#pragma alloc_text(PAGE, IMPushToList)
-#pragma alloc_text(PAGE, IMPop)
 #pragma alloc_text(PAGE, IMCreateRecord)
 #pragma alloc_text(PAGE, IMFreeRecord)
+#pragma alloc_text(PAGE, IMFreeRecordList)
 #endif // ALLOC_PRAGMA
 
 //------------------------------------------------------------------------
 //  Functions.
 //------------------------------------------------------------------------
-
-//
-// List manipulation
-//
-
-_Check_return_
-    NTSTATUS
-    IMInitList(
-        _Inout_ PIM_KRECORD_HEAD RecordHead,
-        _In_ SIZE_T Size)
-{
-  NTSTATUS status = STATUS_SUCCESS;
-
-  PAGED_CODE();
-
-  IF_FALSE_RETURN_RESULT(RecordHead != NULL, STATUS_INVALID_PARAMETER_1);
-  IF_FALSE_RETURN_RESULT(Size != 0, STATUS_INVALID_PARAMETER_2);
-
-  LOG(("[IM] List initializing\n"));
-
-  __try
-  {
-    RecordHead->MaxRecordsToPush = IM_DEFAULT_MAX_RECORDS;
-    RecordHead->RecordsPushed = 0;
-    RecordHead->RecordStructSize = (ULONG) Size;
-    NT_IF_FAIL_LEAVE(IMAllocateNonPagedBuffer(&RecordHead->OutputRecordEvent, sizeof(KEVENT)));
-
-    KeInitializeEvent(
-        RecordHead->OutputRecordEvent,
-        NotificationEvent,
-        FALSE);
-
-    InitializeListHead(&RecordHead->RecordList);
-    KeInitializeSpinLock(&RecordHead->RecordListLock);
-  }
-  __finally
-  {
-    if (NT_ERROR(status))
-    {
-      LOG_B(("[IM] List initializing error\n"));
-
-      IMDeinitList(RecordHead);
-    }
-    else
-    {
-      LOG(("[IM] List initialized\n"));
-    }
-  }
-
-  return STATUS_SUCCESS;
-}
-
-VOID IMDeinitList(
-    _Inout_ PIM_KRECORD_HEAD RecordHead)
-{
-  PAGED_CODE();
-
-  IF_FALSE_RETURN(RecordHead != NULL);
-  IF_FALSE_RETURN(RecordHead->OutputRecordEvent != NULL);
-
-  LOG(("[IM] List deinitializing\n"));
-
-  IMFreeList(&RecordHead->RecordListLock, &RecordHead->RecordList);
-
-  ExFreePool(RecordHead->OutputRecordEvent);
-
-  LOG(("[IM] List deinitialized\n"));
-}
-
-VOID IMFreeList(
-    _In_ PKSPIN_LOCK Lock,
-    _In_ PLIST_ENTRY ListHead)
-{
-  PLIST_ENTRY recordListEntry = NULL;
-
-  PAGED_CODE();
-
-  IF_FALSE_RETURN(ListHead != NULL);
-  IF_FALSE_RETURN(Lock != NULL);
-
-  LOG(("[IM] List freeing\n"));
-
-  IMPop(Lock, ListHead, &recordListEntry);
-
-  //  iterate over list
-  while (recordListEntry != NULL)
-  {
-    PIM_KRECORD_LIST recordList = CONTAINING_RECORD(recordListEntry, IM_KRECORD_LIST, List);
-
-    IMFreeRecord(recordList);
-
-    IMPop(Lock, ListHead, &recordListEntry);
-  }
-
-  LOG(("[IM] List freed\n"));
-}
-
-VOID IMPush(
-    _In_ PLIST_ENTRY ListEntry,
-    _In_ PIM_KRECORD_HEAD RecordsHead)
-{
-  PAGED_CODE();
-
-  IF_FALSE_RETURN(ListEntry != NULL);
-  IF_FALSE_RETURN(RecordsHead != NULL);
-
-  IMPushToList(
-      &RecordsHead->RecordListLock,
-      &RecordsHead->RecordList,
-      ListEntry,
-      RecordsHead->OutputRecordEvent);
-
-  InterlockedIncrement64(&RecordsHead->RecordsPushed);
-}
-
-VOID IMPushToList(
-    _In_ PKSPIN_LOCK SpinLock,
-    _In_ PLIST_ENTRY ListHead,
-    _In_ PLIST_ENTRY ListEntry,
-    _In_opt_ PKEVENT Event)
-{
-  KIRQL oldIrql;
-  PAGED_CODE();
-
-  IF_FALSE_RETURN(SpinLock != NULL);
-  IF_FALSE_RETURN(ListHead != NULL);
-  IF_FALSE_RETURN(ListEntry != NULL);
-  IF_FALSE_RETURN(Event != NULL);
-
-  KeAcquireSpinLock(SpinLock, &oldIrql);
-
-  InsertTailList(ListHead, ListEntry);
-
-  KeSetEvent(Event, IO_NO_INCREMENT, FALSE);
-
-  KeReleaseSpinLock(SpinLock, oldIrql);
-
-  LOG(("[IM] Record pushed to list\n"));
-}
-
-VOID IMPop(
-    _In_ PKSPIN_LOCK Lock,
-    _In_ PLIST_ENTRY ListHead,
-    _Outptr_ PLIST_ENTRY *RecordListEntry)
-{
-  KIRQL oldIrql;
-
-  PAGED_CODE();
-
-  *RecordListEntry = NULL;
-
-  IF_FALSE_RETURN(ListHead != NULL);
-  IF_FALSE_RETURN(Lock != NULL);
-
-  KeAcquireSpinLock(Lock, &oldIrql);
-
-  if (!IsListEmpty(ListHead))
-  {
-    *RecordListEntry = RemoveHeadList(ListHead);
-  }
-
-  KeReleaseSpinLock(Lock, oldIrql);
-
-  LOG(("[IM] Record poped\n"));
-}
 
 _Check_return_
     _IRQL_requires_max_(APC_LEVEL)
@@ -215,8 +45,9 @@ _Check_return_
     IMCreateRecord(
         _Outptr_ PIM_KRECORD_LIST *RecordList,
         _In_ PFLT_CALLBACK_DATA Data,
-        _In_ PUNICODE_STRING FileName,
-        _In_ PUNICODE_STRING ProcessName)
+        _In_ PIM_NAME_INFORMATION FileNameInfo,
+        _In_ PUNICODE_STRING ProcessName,
+        _In_ IM_VIDEO_MODE_STATUS VideoMode)
 {
   NTSTATUS status = STATUS_SUCCESS;
   PIM_KRECORD_LIST newRecord = NULL;
@@ -224,16 +55,16 @@ _Check_return_
   PAGED_CODE();
 
   IF_FALSE_RETURN_RESULT(Data != NULL, STATUS_INVALID_PARAMETER_2);
-  IF_FALSE_RETURN_RESULT(FileName != NULL, STATUS_INVALID_PARAMETER_3);
+  IF_FALSE_RETURN_RESULT(FileNameInfo != NULL, STATUS_INVALID_PARAMETER_3);
   IF_FALSE_RETURN_RESULT(KeGetCurrentIrql() <= APC_LEVEL, STATUS_UNSUCCESSFUL);
-  IF_FALSE_RETURN_RESULT(Globals.RecordHead.RecordsPushed < Globals.RecordHead.MaxRecordsToPush, STATUS_MAX_REFERRALS_EXCEEDED);
+  IF_FALSE_RETURN_RESULT(Globals.RecordsHead.ElementsPushed < Globals.RecordsHead.MaxElementsToPush, STATUS_MAX_REFERRALS_EXCEEDED);
 
   LOG(("[IM] Record creation start\n"));
 
   __try
   {
 
-    newRecord = (PIM_KRECORD_LIST)ExAllocateFromNPagedLookasideList(&Globals.RecordsLookaside);
+    newRecord = (PIM_KRECORD_LIST)ExAllocateFromNPagedLookasideList(&Globals.RecordsHead.ElementsLookaside);
 
     if (NULL == newRecord)
     {
@@ -247,9 +78,11 @@ _Check_return_
     //  setting data
     newRecord->Record.Debug = 0xCEFAADDE;
     newRecord->Record.TotalLength = sizeof(IM_KRECORD);
+    newRecord->Record.VideoModeStatus = VideoMode;
+    newRecord->Record.FileNameInformation = FileNameInfo;
     KeQuerySystemTime(&newRecord->Record.Time);
 
-    NT_IF_FAIL_LEAVE(IMCopyString(FileName, &newRecord->Record.Data[IM_FILE_NAME_INDEX].Size, &newRecord->Record.Data[IM_FILE_NAME_INDEX].Buffer, &newRecord->Record.TotalLength));
+    NT_IF_FAIL_LEAVE(IMCopyString(&FileNameInfo->FullName, &newRecord->Record.Data[IM_FILE_NAME_INDEX].Size, &newRecord->Record.Data[IM_FILE_NAME_INDEX].Buffer, &newRecord->Record.TotalLength));
 
     NT_IF_FAIL_LEAVE(IMCopyString(ProcessName, &newRecord->Record.Data[IM_PROCESS_NAME_INDEX].Size, &newRecord->Record.Data[IM_PROCESS_NAME_INDEX].Buffer, &newRecord->Record.TotalLength));
   }
@@ -265,7 +98,7 @@ _Check_return_
     }
     else
     {
-      newRecord->Record.SequenceNumber = InterlockedIncrement64(&Globals.LogSequenceNumber); // todo may overrun
+      newRecord->Record.SequenceNumber = InterlockedIncrement64(&Globals.RecordsHead.SequenceNumber); // todo may overrun
       *RecordList = newRecord;
       LOG(("[IM] Record created with %wZ and %wZ\n", ProcessName, FileName));
     }
@@ -286,7 +119,21 @@ VOID IMFreeRecord(
     IMFreeNonPagedBuffer((PVOID)RecordList->Record.Data[i].Buffer);
   }
 
-  ExFreeToNPagedLookasideList(&Globals.RecordsLookaside, RecordList);
+  ExFreeToNPagedLookasideList(&Globals.RecordsHead.ElementsLookaside, RecordList);
 
   LOG(("[IM] Record freed\n"));
+}
+
+VOID IMFreeRecordList(
+    _In_ PLIST_ENTRY ListEntry)
+{
+  PIM_KRECORD_LIST recordList = NULL;
+
+  PAGED_CODE();
+
+  IF_FALSE_RETURN(ListEntry != NULL);
+
+  recordList = CONTAINING_RECORD(ListEntry, IM_KRECORD_LIST, List);
+
+  IMFreeRecord(recordList);
 }

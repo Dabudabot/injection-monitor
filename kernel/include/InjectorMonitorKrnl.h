@@ -19,6 +19,8 @@ Kernel mode & User mode
 
 #pragma once
 
+#include "InjectorMonitorCommon.h"
+
 //------------------------------------------------------------------------
 //  Definitions.
 //------------------------------------------------------------------------
@@ -77,6 +79,16 @@ typedef struct _IM_KRECORD
   // is pre operation callback succeded (just for log)
   //
   BOOLEAN IsSucceded;
+
+  //
+  // status of loading game in certain video mode
+  //
+  IM_VIDEO_MODE_STATUS VideoModeStatus;
+
+  //
+  // file information (must be freed before push)
+  //
+  PVOID FileNameInformation;
 
   //
   // contains data of variable length (such as strings)
