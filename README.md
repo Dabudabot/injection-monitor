@@ -25,7 +25,7 @@ Tests are simple helloworld examples to test library load.
 
 ## Deploy
 
-To deploy driver and application run im_build.cmd in virtual machine
+To deploy driver and application run im_deploy.cmd in virtual machine
 
 ## Further development:
 
@@ -37,8 +37,11 @@ To deploy driver and application run im_build.cmd in virtual machine
 ![demo1](docs/demo1.gif)
 REPARSING DLL LOAD
 
-![demo1](docs/demo2.gif)
+![demo2](docs/demo2.gif)
 RESTRICTED LOAD FROM DIRECTORIES
+
+![demo3](docs/demo3.gif)
+DEMO ON GAME
 
 ---------------------------------------
 Tested on Windows 7 x64

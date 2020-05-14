@@ -254,8 +254,8 @@ IMIsContainsString(
     a = String->Buffer[i];
     b = SubString->Buffer[j];
 
-    if (a >= L'A' || a <= L'Z') a = a + (L'a' - L'A'); 
-    if (b >= L'A' || b <= L'Z') b = b + (L'a' - L'A');
+    if (a >= L'A' && a <= L'Z') a = a + (L'a' - L'A'); 
+    if (b >= L'A' && b <= L'Z') b = b + (L'a' - L'A');
 
     if (a == b)
     {
@@ -304,10 +304,10 @@ IMIsStartWithString(
     a = String->Buffer[i];
     b = SubString->Buffer[j];
 
-    if (a >= L'A' || a <= L'Z') a = a + (L'a' - L'A'); 
-    if (b >= L'A' || b <= L'Z') b = b + (L'a' - L'A');
+    if (a >= L'A' && a <= L'Z') a = a + (L'a' - L'A'); 
+    if (b >= L'A' && b <= L'Z') b = b + (L'a' - L'A');
 
-    if (String->Buffer[i] == SubString->Buffer[j])
+    if (a == b)
     {
       j++;
       if (SubString->Length / sizeof(WCHAR) == j)

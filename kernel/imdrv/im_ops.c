@@ -380,6 +380,14 @@ _Check_return_
 
   __try
   {
+    // we allow everything from windows folder because it contains fonts for example
+    if (IMIsStartWithString(&FileNameInfo->ParentDir, &strAllowedDir1))
+    {
+      isBlocked = FALSE;
+      LOG(("[IM] Allowed paths %wZ and we have %wZ\n", &strAllowedDir1, &FileNameInfo->ParentDir));
+      __leave;
+    }
+
     // we are only allow .dll files
     if (RtlCompareUnicodeString(&FileNameInfo->Extension, &strAllowedExt, TRUE) != 0)
     {
@@ -396,15 +404,13 @@ _Check_return_
       __leave;
     }
 
-    NT_IF_FAIL_LEAVE(IMSplitString(ParentDirProcessName, &steamFolder, NULL, L'\\', -4));
+    NT_IF_FAIL_LEAVE(IMSplitString(ParentDirProcessName, &steamFolder, NULL, L'\\', -4)); // todo game may be not in steam folder
 
-    // we only accept windows root folder and target process root folder
-    if (!IMIsStartWithString(&FileNameInfo->ParentDir, &strAllowedDir1) && 
-    !IMIsStartWithString(&FileNameInfo->ParentDir, ParentDirProcessName) && 
-    !IMIsStartWithString(&FileNameInfo->ParentDir, &steamFolder))
+    // we only target process root folder and steam folder
+    if (!IMIsStartWithString(&FileNameInfo->ParentDir, ParentDirProcessName) && !IMIsStartWithString(&FileNameInfo->ParentDir, &steamFolder))
     {
       isBlocked = TRUE;
-      LOG(("[IM] Allowed paths %wZ and %wZ, but we have %wZ\n", &strAllowedDir1, ParentDirProcessName, &FileNameInfo->ParentDir));
+      LOG(("[IM] Allowed paths %wZ and %wZ, but we have %wZ\n", &steamFolder, ParentDirProcessName, &FileNameInfo->ParentDir));
       __leave;
     }
   }
