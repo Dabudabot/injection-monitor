@@ -34,8 +34,6 @@ Kernel mode
 #pragma alloc_text(PAGE, IMDeinitList)
 #pragma alloc_text(PAGE, IMFreeList)
 #pragma alloc_text(PAGE, IMPush)
-#pragma alloc_text(PAGE, IMPushToList)
-#pragma alloc_text(PAGE, IMPop)
 #endif // ALLOC_PRAGMA
 
 //------------------------------------------------------------------------
@@ -78,18 +76,6 @@ _Check_return_
 
         InitializeListHead(&ListHead->ElementList);
         KeInitializeSpinLock(&ListHead->ElementListLock);
-
-        DbgBreakPoint();
-
-        ULONG s1 = (ULONG) Size;
-        ULONG s2 = (ULONG) sizeof(IM_KRECORD);
-        ULONG s3 = (ULONG) sizeof(IM_KRECORD_LIST);
-        ULONG s4 = (ULONG) Size + (ULONG) sizeof(LIST_ENTRY);
-
-        UNREFERENCED_PARAMETER(s1);
-        UNREFERENCED_PARAMETER(s2);
-        UNREFERENCED_PARAMETER(s3);
-        UNREFERENCED_PARAMETER(s4);
 
         ExInitializeNPagedLookasideList(&ListHead->ElementsLookaside,
                                         NULL,
@@ -171,13 +157,13 @@ VOID IMPush(
     IF_FALSE_RETURN(ListEntry != NULL);
     IF_FALSE_RETURN(ListHead != NULL);
 
+    InterlockedIncrement64(&ListHead->ElementsPushed);
+
     IMPushToList(
         &ListHead->ElementListLock,
         &ListHead->ElementList,
         ListEntry,
         ListHead->NewElementEvent);
-
-    InterlockedIncrement64(&ListHead->ElementsPushed);
 }
 
 VOID IMPushToList(
@@ -187,7 +173,6 @@ VOID IMPushToList(
     _In_opt_ PKEVENT Event)
 {
     KIRQL oldIrql;
-    PAGED_CODE();
 
     IF_FALSE_RETURN(SpinLock != NULL);
     IF_FALSE_RETURN(ListHead != NULL);
@@ -211,8 +196,6 @@ VOID IMPop(
     _Outptr_ PLIST_ENTRY *ListEntry)
 {
     KIRQL oldIrql;
-
-    PAGED_CODE();
 
     *ListEntry = NULL;
 

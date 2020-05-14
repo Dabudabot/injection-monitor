@@ -30,8 +30,6 @@ Kernel mode
 //------------------------------------------------------------------------
 
 #ifdef ALLOC_PRAGMA
-#pragma alloc_text(PAGE, IMAllocateResource)
-#pragma alloc_text(PAGE, IMFreeResource)
 #pragma alloc_text(PAGE, IMAllocateNonPagedBuffer)
 #pragma alloc_text(PAGE, IMFreeNonPagedBuffer)
 #pragma alloc_text(PAGE, IMCopyString)
@@ -48,86 +46,6 @@ Kernel mode
 //------------------------------------------------------------------------
 //  Functions.
 //------------------------------------------------------------------------
-
-//
-// Resources
-//
-
-_Check_return_
-    NTSTATUS
-    IMAllocateResource(
-        _Outptr_ PERESOURCE *Resource)
-{
-  NTSTATUS status = STATUS_SUCCESS;
-  PERESOURCE resource = NULL;
-  BOOLEAN deleteResource = FALSE;
-  BOOLEAN freeBuffer = FALSE;
-
-  PAGED_CODE();
-
-  IF_FALSE_RETURN_RESULT(Resource != NULL, STATUS_INVALID_PARAMETER_1);
-
-  LOG(("[IM] Resource allocation\n"));
-
-  __try
-  {
-    status = IMAllocateNonPagedBuffer((PVOID *)&resource, sizeof(ERESOURCE));
-    if (!NT_SUCCESS(status))
-    {
-      freeBuffer = TRUE;
-      LOG_B(("[IM] Resource buffer allocation failed\n"));
-      __leave;
-    }
-
-    status = ExInitializeResourceLite(resource);
-    if (!NT_SUCCESS(status))
-    {
-      deleteResource = TRUE;
-      LOG_B(("[IM] Resource initilazation failed\n"));
-      __leave;
-    }
-
-    *Resource = resource;
-  }
-  __finally
-  {
-    if (NT_ERROR(status))
-    {
-      LOG_B(("[IM] Resource allocation error\n"));
-
-      if (deleteResource)
-      {
-        ExDeleteResourceLite(resource);
-      }
-
-      if (freeBuffer)
-      {
-        IMFreeNonPagedBuffer(resource);
-      }
-    }
-    else
-    {
-      LOG(("[IM] Resource 0x%p allocated\n", (PVOID)Resource));
-    }
-  }
-
-  return status;
-}
-
-VOID IMFreeResource(
-    _In_ PERESOURCE Resource)
-{
-  PAGED_CODE();
-
-  IF_FALSE_RETURN(Resource != NULL);
-
-  LOG(("[IM] Resource 0x%p freeing\n", (PVOID)Resource));
-
-  ExDeleteResourceLite(Resource);
-  IMFreeNonPagedBuffer(Resource);
-
-  LOG(("[IM] Resource freed\n"));
-}
 
 //
 // Buffers
@@ -393,6 +311,7 @@ IMIsStartWithString(
   return FALSE;
 }
 
+// TODO refactor this function too many akward staff
 _Check_return_
     NTSTATUS
     IMSplitString(
@@ -411,7 +330,6 @@ _Check_return_
 
   IF_FALSE_RETURN_RESULT(String != NULL, STATUS_INVALID_PARAMETER_1);
   IF_FALSE_RETURN_RESULT(String->Buffer != NULL, STATUS_INVALID_PARAMETER_1);
-  IF_FALSE_RETURN_RESULT(String->Length != 0, STATUS_INVALID_PARAMETER_1);
   FLT_ASSERT(String->Length % sizeof(WCHAR) == 0);
 
   if (Beginning == NULL && Ending == NULL)
@@ -445,6 +363,26 @@ _Check_return_
 
   LOG(("[IM] String splitting started\n"));
 
+  if (String->Length == 0)
+  {
+    // original string is emptry, we also will create empty ones
+    if (Beginning != NULL)
+    {
+      NT_IF_FAIL_RETURN(IMAllocateUnicodeString(Beginning, (USHORT) sizeof(WCHAR)));
+      RtlZeroMemory(Beginning->Buffer, sizeof(WCHAR)); // '\0'
+      Beginning->Length = 0;
+    }
+
+    if (Ending != NULL)
+    {
+      NT_IF_FAIL_RETURN(IMAllocateUnicodeString(Ending, (USHORT) sizeof(WCHAR)));
+      RtlZeroMemory(Ending->Buffer, sizeof(WCHAR)); // '\0'
+      Ending->Length = 0;
+    }
+
+    return STATUS_SUCCESS;
+  }
+
   if (Occurrence < 0)
   {
     i = (String->Length / sizeof(WCHAR)) - 1;
@@ -470,6 +408,24 @@ _Check_return_
         break;
       }
     }
+  }
+
+  // it was not found, we will just copy full string to beginning and nothing to ending
+  if (i == end)
+  {
+    if (Beginning != NULL)
+    {
+      NT_IF_FAIL_RETURN(IMCopyUnicodeString(Beginning, String));
+    }
+
+    if (Ending != NULL)
+    {
+      NT_IF_FAIL_RETURN(IMAllocateUnicodeString(Ending, (USHORT) sizeof(WCHAR)));
+      RtlZeroMemory(Ending->Buffer, sizeof(WCHAR)); // '\0'
+      Ending->Length = 0;
+    }
+    
+    return STATUS_SUCCESS;
   }
 
   // now i is the first symbol of the ending string
@@ -517,6 +473,8 @@ _Check_return_
   RtlCopyMemory(Dest->Buffer + (Start->Length / sizeof(WCHAR)), End->Buffer, End->Length);
   RtlZeroMemory(Dest->Buffer + ((Start->Length + End->Length) / sizeof(WCHAR)), sizeof(WCHAR)); // '/0'
 
+  Dest->Length = Start->Length + End->Length;
+
   return STATUS_SUCCESS;
 }
 
@@ -539,8 +497,9 @@ _Check_return_
   IF_FALSE_RETURN_RESULT(String->Length == 0, STATUS_INVALID_PARAMETER_3);
 
   NT_IF_FAIL_RETURN(IMAllocateUnicodeString(String, (USHORT) Size));
-  RtlCopyMemory(String->Buffer, String, Size - sizeof(WCHAR));
+  RtlCopyMemory(String->Buffer, Buffer, Size - sizeof(WCHAR));
   RtlZeroMemory(String->Buffer + (Size / sizeof(WCHAR)) - 1, sizeof(WCHAR)); // '/0'
+  String->Length = (USHORT) (Size - sizeof(WCHAR));
 
   return STATUS_SUCCESS;
 }

@@ -186,6 +186,9 @@ Always success
 {
   UNREFERENCED_PARAMETER(Flags);
 
+  ULONG i = 0;
+  PIM_PROCESS_INFO target = NULL;
+
   PAGED_CODE();
 
   LOG(("[IM] Driver unloading\n"));
@@ -199,6 +202,21 @@ Always success
   // unregister process callback
   //
   PsSetCreateProcessNotifyRoutine(IMCreateProcessNotifyRoutine, TRUE);
+
+  //
+  // Delete registered process
+  //
+  for (; i < IM_AMOUNT_OF_TARGET_PROCESSES; i++)
+  {
+    target = &Globals.TargetProcessInfo[i];
+    if (target->isActive)
+    {
+      IMReleaseNameInformation(target->NameInfo);
+      target->isActive = FALSE;
+      target->isDuplicate = FALSE;
+      target->ProcessId = NULL;
+    }
+  }
 
   if (NULL != Globals.Filter)
   {
@@ -282,6 +300,9 @@ IMDeinitializeGlobals()
   PAGED_CODE();
 
   LOG(("[IM] Globals deinitializing\n"));
+
+  ExFreePool(Globals.TargetProcessInfo[IM_HL_PROCESS_INFO_INDEX].TargetName.Buffer);
+  ExFreePool(Globals.TargetProcessInfo[IM_CS_PROCESS_INFO_INDEX].TargetName.Buffer);
 
   IMDeinitList(&Globals.RecordsHead);
 

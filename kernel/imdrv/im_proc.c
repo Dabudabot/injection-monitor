@@ -60,33 +60,38 @@ VOID IMCreateProcessNotifyRoutine(
 
   __try
   {
-    NT_IF_FAIL_LEAVE(IMGetProcessNameInformation(ProcessId, &processNameInfo));
-
-    for (; i < IM_AMOUNT_OF_TARGET_PROCESSES; i++)
+    if (Create)
     {
-      target = &Globals.TargetProcessInfo[i];
-      if (RtlCompareUnicodeString(&processNameInfo->Name, &target->TargetName, TRUE) == 0)
+      NT_IF_FAIL_LEAVE(IMGetProcessNameInformation(ProcessId, &processNameInfo));
+
+      for (; i < IM_AMOUNT_OF_TARGET_PROCESSES; i++)
       {
-        if (Create)
+        target = &Globals.TargetProcessInfo[i];
+        if (RtlCompareUnicodeString(&processNameInfo->Name, &target->TargetName, TRUE) == 0)
         {
           isFound = TRUE;
-
           if (target->isActive)
           {
             LOG_B(("[IM] PROCESS DUPLICATION\n")); // TODO
             target->isDuplicate = TRUE;
             IMReleaseNameInformation(target->NameInfo);
           }
-
           target->NameInfo = processNameInfo;
           target->isActive = TRUE;
           target->ProcessId = ProcessId;
 
           LOG(("[IM] Found process creation: %wZ\n", &processNameInfo->Name));
         }
-        else
+      }
+    }
+    else
+    {
+      for (; i < IM_AMOUNT_OF_TARGET_PROCESSES; i++)
+      {
+        target = &Globals.TargetProcessInfo[i];
+        if (target->isActive && ProcessId == target->ProcessId)
         {
-          LOG(("[IM] Found process termination: %wZ\n", &processNameInfo->Name));
+          LOG(("[IM] Found process termination: %wZ\n", &target->TargetName));
           IMReleaseNameInformation(target->NameInfo);
           target->isActive = FALSE;
           target->isDuplicate = FALSE;

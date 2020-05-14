@@ -12,8 +12,6 @@ call msbuildex.cmd "kernel\imdrv" imdrv Debug x64 "libs/imlib" imlib debug x64 "
 
 if errorlevel 1 goto :fail
 
-goto :end
-
 REM copy to the share all what we need to test
 
 call "C:\Program Files (x86)\VMware\VMware VIX\vmrun.exe" revertToSnapshot %MACHINE% %SNAPSHOT%
@@ -31,6 +29,8 @@ copy /Y "build\x64\exe\hl.pdb" %SHARE_FOLDER%
 
 copy /Y "build\x64\lib\testdll0.dll" %SHARE_FOLDER%
 copy /Y "build\x64\lib\testdll0.pdb" %SHARE_FOLDER%
+copy /Y "build\x64\lib\testdll1.dll" %SHARE_FOLDER%
+copy /Y "build\x64\lib\testdll1.pdb" %SHARE_FOLDER%
 
 copy /Y "deploy.cmd" %SHARE_FOLDER%
 copy /Y "im_deploy.cmd" %SHARE_FOLDER%

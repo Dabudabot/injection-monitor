@@ -31,18 +31,6 @@ Kernel mode
 //------------------------------------------------------------------------
 
 //
-// Resources
-//
-
-_Check_return_
-    NTSTATUS
-    IMAllocateResource(
-        _Outptr_ PERESOURCE *Resource);
-
-VOID IMFreeResource(
-    _In_ PERESOURCE Resource);
-
-//
 // Buffers
 //
 

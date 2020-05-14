@@ -183,7 +183,7 @@ _Check_return_
   {
     NT_IF_FAIL_LEAVE(PsLookupProcessByProcessId(ProcessId, &eProcess));
 
-    NT_IF_FAIL_LEAVE(ObOpenObjectByPointer(eProcess, 0, NULL, 0, 0, KernelMode, &hProcess));
+    NT_IF_FAIL_LEAVE(ObOpenObjectByPointer(eProcess, OBJ_KERNEL_HANDLE, NULL, 0, 0, KernelMode, &hProcess));
 
     status = ZwQueryInformationProcess(hProcess,
                                        ProcessImageFileName,

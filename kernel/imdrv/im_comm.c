@@ -55,8 +55,8 @@ LONG IMExceptionFilter(
 //
 // Message functions
 //
-
-_Check_return_
+_IRQL_requires_(PASSIVE_LEVEL)
+    _Check_return_
     NTSTATUS
     IMGetRecords(
         _In_ PIM_KLIST_HEAD RecordsHead,
@@ -78,8 +78,6 @@ _Check_return_
 #pragma alloc_text(PAGE, IMMessage)
 #pragma alloc_text(PAGE, IMExceptionFilter)
 
-// Command handlers.
-#pragma alloc_text(PAGE, IMGetRecords)
 #endif // ALLOC_PRAGMA
 
 //------------------------------------------------------------------------
@@ -371,7 +369,8 @@ LONG IMExceptionFilter(
 // Message functions
 //
 
-_Check_return_
+_IRQL_requires_(PASSIVE_LEVEL)
+    _Check_return_
     NTSTATUS
     IMGetRecords(
         _In_ PIM_KLIST_HEAD RecordsHead,
@@ -389,12 +388,11 @@ _Check_return_
   PLIST_ENTRY listEntry = &RecordsHead->ElementList;
   ULONG sizeOfRecord = RecordsHead->ElementStructSize;
 
-  PAGED_CODE();
-
   IF_FALSE_RETURN_RESULT(RecordsHead != NULL, STATUS_INVALID_PARAMETER_1);
   IF_FALSE_RETURN_RESULT(OutputBuffer != NULL, STATUS_INVALID_PARAMETER_2);
   IF_FALSE_RETURN_RESULT(OutputBufferSize != 0, STATUS_INVALID_PARAMETER_3);
   IF_FALSE_RETURN_RESULT(ReturnOutputBufferLength != NULL, STATUS_INVALID_PARAMETER_4);
+  IF_FALSE_RETURN_RESULT(KeGetCurrentIrql() == PASSIVE_LEVEL, STATUS_INVALID_LEVEL);
 
   //LOG(("[IM] Records copy start\n"));
 
@@ -445,7 +443,7 @@ _Check_return_
     IMFreeRecord(recordList);
 
     InterlockedDecrement64(&RecordsHead->ElementsPushed);
-    ASSERT(RecordsHead->ElementsPushed >= 0); // todo sometimes it decs earlier than incs
+    FLT_ASSERT(RecordsHead->ElementsPushed >= 0);
 
     KeAcquireSpinLock(listLock, &oldIrql);
   }

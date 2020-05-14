@@ -107,12 +107,6 @@ IMPreCreate(
     desiredAccess = Data->Iopb->Parameters.Create.SecurityContext->DesiredAccess;
     processId = PsGetCurrentProcessId();
 
-    // opening without execution rights, not our case definitly
-    if (!FlagOn(desiredAccess, FILE_EXECUTE))
-    {
-      __leave;
-    }
-
     // we skip paging
     // we not looking for volumes
     // we do not work in opening by id
@@ -146,11 +140,23 @@ IMPreCreate(
     // now we make decision about video mode
     NT_IF_FAIL_LEAVE(IMDecideVideoMode(Data->Iopb->TargetFileObject, processNameInfo, fileNameInfo, &videoMode));
 
+    // opening without execution rights, not our case but if we speak about video mode we have to log all
+    // cause in case of applicable it is hw.dll or sw.dll
+    if (!FlagOn(desiredAccess, FILE_EXECUTE) && videoMode == IM_NOT_APPLICABLE)
+    {
+      __leave;
+    }
+
     // now we create record for log
     NT_IF_FAIL_LEAVE(IMCreateRecord(&recordList, Data, fileNameInfo, &processNameInfo->FullName, videoMode));
   }
   __finally
   {
+    if (fileNameInfo != NULL && (recordList == NULL || IM_VIDEO_HW_TO_SW == videoMode || IM_VIDEO_SW_TO_HW == videoMode))
+    {
+      IMReleaseNameInformation(fileNameInfo);
+    }
+
     if (NT_SUCCESS(status))
     {
       // if need to change mode we fake reparse point
@@ -164,7 +170,7 @@ IMPreCreate(
       }
       else
       {
-        if (NULL == recordList)
+        if (NULL != recordList)
         {
           *CompletionContext = recordList;
           cbStatus = FLT_PREOP_SUCCESS_WITH_CALLBACK;
@@ -201,8 +207,6 @@ IMPostCreate(
   BOOLEAN isBlocked = FALSE;
   UNICODE_STRING fullProcessName;
 
-  //DbgBreakPoint();
-
   UNREFERENCED_PARAMETER(Flags);
   UNREFERENCED_PARAMETER(CompletionContext);
 
@@ -212,13 +216,14 @@ IMPostCreate(
   FLT_ASSERT(Data->Iopb->MajorFunction == IRP_MJ_CREATE);
   FLT_ASSERT(CompletionContext != NULL);
 
+  RtlZeroMemory(&fullProcessName, sizeof(UNICODE_STRING));
   recordList = (PIM_KRECORD_LIST)CompletionContext;
 
   LOG(("[IM] Post create start\n"));
 
   __try
   {
-    fileNameInfo = (PIM_NAME_INFORMATION) recordList->Record.FileNameInformation;
+    fileNameInfo = (PIM_NAME_INFORMATION)recordList->Record.FileNameInformation;
 
     if (NULL == fileNameInfo)
     {
@@ -238,6 +243,11 @@ IMPostCreate(
     if (NT_ERROR(status))
     {
       LOG_B(("[IM] Operatin failed\n"));
+    }
+
+    if (NULL != fullProcessName.Buffer)
+    {
+      ExFreePool(fullProcessName.Buffer);
     }
 
     if (NULL != fileNameInfo)
@@ -284,12 +294,19 @@ _Check_return_
 
   PAGED_CODE();
 
+  RtlZeroMemory(&replacement, sizeof(UNICODE_STRING));
   *VideoMode = IM_NOT_APPLICABLE;
 
   __try
   {
     // it is only works with hl
     if (RtlCompareUnicodeString(&ProcessNameInfo->Name, &Globals.TargetProcessInfo[IM_HL_PROCESS_INFO_INDEX].TargetName, TRUE) != 0)
+    {
+      __leave;
+    }
+
+    // it is only works with files from game folder
+    if (RtlCompareUnicodeString(&ProcessNameInfo->ParentDir, &FileNameInfo->ParentDir, TRUE) != 0)
     {
       __leave;
     }
@@ -317,6 +334,11 @@ _Check_return_
   }
   __finally
   {
+    if (NULL != replacement.Buffer)
+    {
+      ExFreePool(replacement.Buffer);
+    }
+
     if (NT_SUCCESS(status))
     {
       *VideoMode = videoMode;
@@ -363,10 +385,10 @@ _Check_return_
     }
 
     // we only accept windows root folder and target process root folder
-    if (!IMIsStartWithString(&FileNameInfo->ParentDir, &strAllowedDir1) && !IMIsStartWithString(&FileNameInfo->ParentDir, FullProcessName))
+    if (!IMIsStartWithString(&FileNameInfo->ParentDir, &strAllowedDir1) && !IMIsStartWithString(FullProcessName, &FileNameInfo->ParentDir))
     {
       isBlocked = TRUE;
-      LOG(("[IM] Allowed paths %wZ and %wZ, but we have %wZ\n", &strAllowedDir1, &processNameInfo->ParentDir, &fileNameInfo->ParentDir));
+      LOG(("[IM] Allowed paths %wZ and %wZ, but we have %wZ\n", &strAllowedDir1, FullProcessName, &FileNameInfo->ParentDir));
       __leave;
     }
   }
