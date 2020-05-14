@@ -32,29 +32,13 @@ To deploy driver and application run im_build.cmd in virtual machine
 1. Do not hardcode requirements of accepting or declining (need to recieve them via IOCTL) or other way
 2. Implement dll-injector to test on injections
 
-## Demo screenshots:
+## Demo:
 
-![samenodrv](docs/1.JPG)
-Running test application with test library placed in the same folder without running driver
+![demo1](docs/demo1.gif)
+REPARSING DLL LOAD
 
-![diffnodrv](docs/2.JPG)
-Running test application with test library placed in some different folder (this folder was added to PATH system variable) without running driver
-
-![winnodrv](docs/3.JPG)
-Running test application with test library placed in Windows directory without running driver
-
-![samedrv1](docs/4.1.JPG)
-![samedrv2](docs/4.2.JPG)
-Running test application with test library placed in the same folder with running driver
-
-![diffdrv](docs/5.JPG)
-Running test application with test library placed in some different folder (this folder was added to PATH system variable) with running driver
-
-![windrv](docs/6.JPG)
-Running test application with test library placed in Windows directory with running driver
-
-![restdrv](docs/7.JPG)
-Running test application with restricted library with running driver
+![demo1](docs/demo2.gif)
+RESTRICTED LOAD FROM DIRECTORIES
 
 ---------------------------------------
 Tested on Windows 7 x64

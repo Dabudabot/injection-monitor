@@ -55,7 +55,7 @@ _Check_return_
 _Check_return_
     NTSTATUS
     IMDecideBlock(
-        _In_ PUNICODE_STRING FullProcessName,
+        _In_ PUNICODE_STRING ParentDirProcessName,
         _In_ PIM_NAME_INFORMATION FileNameInfo,
         _Out_ PBOOLEAN IsBlocked);
 
@@ -206,6 +206,7 @@ IMPostCreate(
   PIM_NAME_INFORMATION fileNameInfo = NULL;
   BOOLEAN isBlocked = FALSE;
   UNICODE_STRING fullProcessName;
+  UNICODE_STRING parentDir;
 
   UNREFERENCED_PARAMETER(Flags);
   UNREFERENCED_PARAMETER(CompletionContext);
@@ -217,6 +218,7 @@ IMPostCreate(
   FLT_ASSERT(CompletionContext != NULL);
 
   RtlZeroMemory(&fullProcessName, sizeof(UNICODE_STRING));
+  RtlZeroMemory(&parentDir, sizeof(UNICODE_STRING));
   recordList = (PIM_KRECORD_LIST)CompletionContext;
 
   LOG(("[IM] Post create start\n"));
@@ -233,10 +235,11 @@ IMPostCreate(
 
     NT_IF_FAIL_LEAVE(IMToString((PWCHAR)recordList->Record.Data[IM_PROCESS_NAME_INDEX].Buffer, recordList->Record.Data[IM_PROCESS_NAME_INDEX].Size, &fullProcessName));
 
+    NT_IF_FAIL_LEAVE(IMSplitString(&fullProcessName, &parentDir, NULL, L'\\', -1)); // todo refactor
     //
     // now we deciding to block load or not
     //
-    NT_IF_FAIL_LEAVE(IMDecideBlock(&fullProcessName, fileNameInfo, &isBlocked));
+    NT_IF_FAIL_LEAVE(IMDecideBlock(&parentDir, fileNameInfo, &isBlocked));
   }
   __finally
   {
@@ -248,6 +251,11 @@ IMPostCreate(
     if (NULL != fullProcessName.Buffer)
     {
       ExFreePool(fullProcessName.Buffer);
+    }
+
+    if (NULL != parentDir.Buffer)
+    {
+      ExFreePool(parentDir.Buffer);
     }
 
     if (NULL != fileNameInfo)
@@ -355,7 +363,7 @@ _Check_return_
 _Check_return_
     NTSTATUS
     IMDecideBlock(
-        _In_ PUNICODE_STRING FullProcessName,
+        _In_ PUNICODE_STRING ParentDirProcessName,
         _In_ PIM_NAME_INFORMATION FileNameInfo,
         _Out_ PBOOLEAN IsBlocked)
 {
@@ -363,8 +371,12 @@ _Check_return_
   UNICODE_STRING strResticted = CONSTANT_STRING(IM_RESTRICTED_FILE);
   UNICODE_STRING strAllowedDir1 = CONSTANT_STRING(IM_ALLOWED_DIR_1);
   BOOLEAN isBlocked = FALSE;
+  UNICODE_STRING steamFolder;
+  NTSTATUS status = STATUS_SUCCESS;
 
   PAGED_CODE();
+
+  RtlZeroMemory(&steamFolder, sizeof(UNICODE_STRING));
 
   __try
   {
@@ -384,11 +396,15 @@ _Check_return_
       __leave;
     }
 
+    NT_IF_FAIL_LEAVE(IMSplitString(ParentDirProcessName, &steamFolder, NULL, L'\\', -4));
+
     // we only accept windows root folder and target process root folder
-    if (!IMIsStartWithString(&FileNameInfo->ParentDir, &strAllowedDir1) && !IMIsStartWithString(FullProcessName, &FileNameInfo->ParentDir))
+    if (!IMIsStartWithString(&FileNameInfo->ParentDir, &strAllowedDir1) && 
+    !IMIsStartWithString(&FileNameInfo->ParentDir, ParentDirProcessName) && 
+    !IMIsStartWithString(&FileNameInfo->ParentDir, &steamFolder))
     {
       isBlocked = TRUE;
-      LOG(("[IM] Allowed paths %wZ and %wZ, but we have %wZ\n", &strAllowedDir1, FullProcessName, &FileNameInfo->ParentDir));
+      LOG(("[IM] Allowed paths %wZ and %wZ, but we have %wZ\n", &strAllowedDir1, ParentDirProcessName, &FileNameInfo->ParentDir));
       __leave;
     }
   }

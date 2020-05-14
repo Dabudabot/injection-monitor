@@ -234,6 +234,8 @@ IMIsContainsString(
 {
   ULONG i = 0;
   ULONG j = 0;
+  WCHAR a;
+  WCHAR b; // todo refactor
 
   PAGED_CODE();
 
@@ -249,7 +251,13 @@ IMIsContainsString(
 
   for (; i < String->Length / sizeof(WCHAR); i++)
   {
-    if (String->Buffer[i] == SubString->Buffer[j])
+    a = String->Buffer[i];
+    b = SubString->Buffer[j];
+
+    if (a >= L'A' || a <= L'Z') a = a + (L'a' - L'A'); 
+    if (b >= L'A' || b <= L'Z') b = b + (L'a' - L'A');
+
+    if (a == b)
     {
       j++;
       if (SubString->Length / sizeof(WCHAR) == j)
@@ -276,6 +284,8 @@ IMIsStartWithString(
 {
   ULONG i = 0;
   ULONG j = 0;
+  WCHAR a; // todo refactor
+  WCHAR b;
 
   PAGED_CODE();
 
@@ -291,6 +301,12 @@ IMIsStartWithString(
 
   for (; i < String->Length / sizeof(WCHAR); i++)
   {
+    a = String->Buffer[i];
+    b = SubString->Buffer[j];
+
+    if (a >= L'A' || a <= L'Z') a = a + (L'a' - L'A'); 
+    if (b >= L'A' || b <= L'Z') b = b + (L'a' - L'A');
+
     if (String->Buffer[i] == SubString->Buffer[j])
     {
       j++;
