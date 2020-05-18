@@ -18,9 +18,9 @@ Tests are simple helloworld examples to test library load.
 
 ## Build
 
-1. Install visual studio 2013 update 4, WDK 8.1
-2. Add path to msbuild (for example: C:\Program Files (x86)\MSBuild\12.0\Bin\amd64) to path environment variable
-3. run im_build.cmd (it requires 3 parameters: path to VM, snapshot name, path to shared with vm folder). Change this script if you use other virtual machine than vmware.
+1. Install Visual Studio 2019 (Version 16.5.5) (SDK 10.0.19041.0 or change to latest), WDK 10 (10.0.19030.1000)
+2. Add path to msbuild (for example: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\amd64) to path environment variable
+3. run im_build_all.cmd (it requires 3 parameters: path to VM, snapshot name, path to shared with vm folder). Change this script if you use other virtual machine than vmware.
 4. binaries is in build directory and copied to share folder
 
 ## Deploy
@@ -44,4 +44,4 @@ RESTRICTED LOAD FROM DIRECTORIES
 DEMO ON GAME
 
 ---------------------------------------
-Tested on Windows 7 x64
+Tested on Windows 7 x64, builds for Windows 7 x86 x64, Windows 10 x86 x64
