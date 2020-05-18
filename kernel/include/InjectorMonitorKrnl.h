@@ -80,6 +80,8 @@ typedef struct _IM_KRECORD
   //
   BOOLEAN IsSucceded;
 
+  UCHAR Reserved[2];      // Alignment on IA64
+
   //
   // status of loading game in certain video mode
   //
@@ -134,7 +136,7 @@ typedef enum _IM_INTERFACE_COMMAND
 typedef struct _IM_COMMAND_MESSAGE
 {
   IM_INTERFACE_COMMAND Command;
-  ULONG Reserved;
+  ULONG Reserved;  // Alignment on IA64
   UCHAR Data[];
 
 } IM_COMMAND_MESSAGE, *PIM_COMMAND_MESSAGE;

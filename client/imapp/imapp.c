@@ -26,7 +26,7 @@ HRESULT
 RecordCallback(
     PIM_RECORD Record)
 {
-  wprintf(L"\n0x%x: \n  Process: %ls\n  Library: %ls\n  Blocked: %d Success: %d\n", Record->SequenceNumber, Record->ProcessName, Record->FileName, Record->IsBlocked, Record->IsSucceded);
+  wprintf(L"\n0x%x: \n  Process: %ls\n  Library: %ls\n  Blocked: %d Success: %d\n", (UINT)Record->SequenceNumber, Record->ProcessName, Record->FileName, Record->IsBlocked, Record->IsSucceded);
 
   switch (Record->VideoMode)
   {

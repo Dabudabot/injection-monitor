@@ -17,6 +17,9 @@ shift
 if "%1"=="" goto :error
 set PLATFORM=%1%
 shift
+if "%1"=="" goto :error
+set OS=%1%
+shift
 
 cd %PATH_TO_PROJECT%
 
@@ -26,7 +29,7 @@ echo STARTING: Building %PROJECT_NAME%
 echo ---------------------------------------------------------------------
 echo -
 
-call msbuild %PROJECT_NAME%.vcxproj /p:configuration=%CONFIG% /p:platform=%PLATFORM%
+call msbuild %PROJECT_NAME%.vcxproj /p:configuration=%CONFIG% /p:platform=%PLATFORM% /p:TargetVersion=%OS%
 
 if errorlevel 1 goto :error
 
