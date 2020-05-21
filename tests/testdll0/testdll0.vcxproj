@@ -74,25 +74,25 @@
     <TargetName>TESTDLL0</TargetName>
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\build\$(TargetVersion)\$(PlatformName)\$(Configuration)\lib\</OutDir>
-    <IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\$(ConfigurationName)</IntDir>
+    <IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetName>TESTDLL0</TargetName>
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\build\$(TargetVersion)\$(PlatformName)\$(Configuration)\lib\</OutDir>
-    <IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\$(ConfigurationName)</IntDir>
+    <IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>TESTDLL0</TargetName>
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\build\$(TargetVersion)\$(PlatformName)\$(Configuration)\lib\</OutDir>
-    <IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\$(ConfigurationName)</IntDir>
+    <IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetName>TESTDLL0</TargetName>
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\build\$(TargetVersion)\$(PlatformName)\$(Configuration)\lib\</OutDir>
-    <IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\$(ConfigurationName)</IntDir>
+    <IntDir>$(ProjectDir)..\..\.intermediate\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

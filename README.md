@@ -6,7 +6,7 @@ Driver registered on IRP_MJ_CREATE. Driver checks SecurityContext on pre create 
 
 ### imlib.lib
 
-Library provides communication with driver to callect logs.
+Library provides communication with driver to collect logs.
 
 ### imapp.exe
 
